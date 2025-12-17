@@ -925,6 +925,7 @@
                 this.currentUser = null;
                 this.githubToken = this.loadToken();
                 this.pendingRequest = null;
+                this.isLoadingFromURL = false;
                 this.userData = {
                     profile: null,
                     repos: [],
@@ -942,6 +943,8 @@
 
                 this.initializeEventListeners();
                 this.updateTokenIndicator();
+                this.setupBrowserNavigation();
+                this.loadUsernameFromURL();
             }
 
             loadToken() {
@@ -974,6 +977,57 @@
                         indicator.style.display = 'none';
                     }
                 }
+            }
+
+            getUsernameFromURL() {
+                const path = window.location.pathname;
+                // Remove leading/trailing slashes and get the last segment
+                const segments = path.split('/').filter(segment => segment.length > 0);
+
+                // For path like /opensource/<username>, we want the last segment
+                // Skip if the last segment is 'opensource' or 'index.html'
+                if (segments.length > 0) {
+                    const lastSegment = segments[segments.length - 1];
+                    if (lastSegment !== 'opensource' && lastSegment !== 'index.html' && !lastSegment.endsWith('.html')) {
+                        return lastSegment;
+                    }
+                }
+                return null;
+            }
+
+            updateURL(username) {
+                if (!username) return;
+
+                const path = window.location.pathname;
+                const basePath = path.substring(0, path.lastIndexOf('/') + 1);
+                const newPath = basePath + username;
+
+                // Update URL without reloading the page
+                window.history.pushState({ username }, '', newPath);
+            }
+
+            loadUsernameFromURL() {
+                const username = this.getUsernameFromURL();
+                if (username) {
+                    // Prefill the search box
+                    document.getElementById('usernameInput').value = username;
+                    // Set flag to prevent URL update during initial load
+                    this.isLoadingFromURL = true;
+                    // Automatically trigger analysis
+                    this.analyzeUser();
+                }
+            }
+
+            setupBrowserNavigation() {
+                // Handle browser back/forward buttons
+                window.addEventListener('popstate', (event) => {
+                    const username = this.getUsernameFromURL();
+                    if (username) {
+                        document.getElementById('usernameInput').value = username;
+                        this.isLoadingFromURL = true;
+                        this.analyzeUser();
+                    }
+                });
             }
 
             initializeEventListeners() {
@@ -1018,6 +1072,12 @@
 
                 this.currentUser = username;
                 this.setState('loading');
+
+                // Update URL with the username (skip if loading from URL initially)
+                if (!this.isLoadingFromURL) {
+                    this.updateURL(username);
+                }
+                this.isLoadingFromURL = false;
 
                 try {
                     await this.fetchAllData(username);
