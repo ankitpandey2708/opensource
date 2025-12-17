@@ -131,14 +131,6 @@ class GitHubDashboard {
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
         });
-
-        // Stats card interaction
-        document.addEventListener('click', (e) => {
-            const card = e.target.closest('.stat-card');
-            if (card?.dataset.type && card.dataset.type !== 'repos') {
-                this.switchTab(card.dataset.type);
-            }
-        });
     }
 
     async analyzeUser() {
@@ -231,7 +223,6 @@ class GitHubDashboard {
     renderDashboard() {
         this.renderUserProfile();
         this.renderInsights();
-        this.renderStatsCards();
         this.renderRepositoryStars();
         this.renderPRs();
     }
@@ -313,37 +304,6 @@ class GitHubDashboard {
         `;
     }
 
-    renderStatsCards() {
-        const stats = [
-            { type: 'repos', icon: '📦', count: this.userData.repos.length, label: 'Repositories' },
-            { type: 'open', icon: '🟡', count: this.userData.openPRs.length, label: 'Open PRs' },
-            { type: 'discarded', icon: '🔴', count: this.userData.discardedPRs.length, label: 'Discarded PRs' },
-            { type: 'merged', icon: '🟢', count: this.userData.mergedPRs.length, label: 'Merged PRs' }
-        ];
-
-        const totalContributions = stats.slice(1).reduce((sum, s) => sum + s.count, 0);
-        const statsGrid = document.getElementById('statsGrid');
-
-        if (totalContributions === 0 && stats[0].count === 0) {
-            statsGrid.style.display = 'none';
-            return;
-        }
-
-        statsGrid.style.display = 'grid';
-        statsGrid.innerHTML = stats.map(({ type, icon, count, label }) => `
-            <div class="stat-card" data-type="${type}">
-                <div class="stat-icon">${icon}</div>
-                <div class="stat-number">${count}</div>
-                <div class="stat-label">${label}</div>
-            </div>
-        `).join('');
-
-        // Update tab counts
-        ['open', 'discarded', 'merged'].forEach((type, i) => {
-            document.getElementById(`${type}Count`).textContent = stats[i + 1].count;
-        });
-    }
-
     renderRepositoryStars() {
         const starredRepos = this.userData.repos
             .filter(repo => repo.stargazers_count > 0)
@@ -384,6 +344,11 @@ class GitHubDashboard {
         ];
 
         prGrids.forEach(({ gridId, prs, state }) => this.renderPRGrid(gridId, prs, state));
+
+        // Update tab counts
+        document.getElementById('openCount').textContent = this.userData.openPRs.length;
+        document.getElementById('discardedCount').textContent = this.userData.discardedPRs.length;
+        document.getElementById('mergedCount').textContent = this.userData.mergedPRs.length;
     }
 
     renderPRGrid(gridId, prs, state) {
@@ -423,7 +388,6 @@ class GitHubDashboard {
     switchTab(tabName) {
         this.toggleClass('.tab', 'active', `[data-tab="${tabName}"]`);
         this.toggleClass('.tab-content', 'active', `#${tabName}Content`);
-        this.toggleClass('.stat-card', 'active', `[data-type="${tabName}"]`);
     }
 
     toggleClass(selector, className, activeSelector) {
