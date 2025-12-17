@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Activity Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #24292e 0%, #1b1f23 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .search-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .search-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #dee2e6;
+        }
+
+        .user-info h2 {
+            font-size: 1.8rem;
+            color: #24292e;
+            margin-bottom: 5px;
+        }
+
+        .user-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .user-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #586069;
+            font-size: 0.9rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid #e1e4e8;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card.active {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-card:nth-child(1) .stat-number {
+            color: #007bff;
+        }
+
+        .stat-card:nth-child(2) .stat-number {
+            color: #ffc107;
+        }
+
+        .stat-card:nth-child(3) .stat-number {
+            color: #dc3545;
+        }
+
+        .stat-card:nth-child(4) .stat-number {
+            color: #28a745;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #586069;
+            margin-bottom: 5px;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .insights {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .insights h3 {
+            color: #24292e;
+            margin-bottom: 15px;
+        }
+
+        .insight-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .insight-stats span {
+            font-weight: 600;
+            color: #586069;
+        }
+
+        .content-section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #24292e;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e4e8;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #586069;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            color: #24292e;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .item-card {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .item-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0366d6;
+            text-decoration: none;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .item-title:hover {
+            text-decoration: underline;
+        }
+
+        .item-description {
+            color: #586069;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .item-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            color: #586069;
+        }
+
+        .language-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .language-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .pr-state {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .pr-state.open {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .pr-state.discarded {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .pr-state.merged {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #dc3545;
+        }
+
+        .error-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        .retry-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .retry-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #586069;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .encouragement-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+        }
+
+        .encouragement-section h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .encouragement-section .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+
+        .encouragement-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .encouragement-content h3 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .resource-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .resource-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .resource-card h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .resource-card p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .resource-link {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .resource-link:hover {
+            background: #f8f9fa;
+            transform: scale(1.05);
+        }
+
+        .encouragement-quote {
+            font-style: italic;
+            font-size: 1.1rem;
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid white;
+            border-radius: 4px;
+        }
+
+        .repo-card {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .repo-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .repo-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .repo-rank {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .repo-name {
+            font-weight: 600;
+            color: #0366d6;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        .repo-name:hover {
+            text-decoration: underline;
+        }
+
+        .repo-description {
+            color: #586069;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            flex-grow: 1;
+        }
+
+        .star-count {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            color: #ffc107;
+            font-size: 1.1rem;
+            margin-top: auto;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .user-profile {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-meta {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+
+            .items-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .insight-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GitHub Activity Dashboard</h1>
+            <p>Your GitHub story, beautifully told</p>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Enter GitHub username (e.g., ankitpandey2708)"
+                    id="usernameInput">
+                <button class="search-btn" id="analyzeBtn">Analyze</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="loadingState" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing GitHub profile...</p>
+            </div>
+
+            <div id="errorState" class="error" style="display: none;">
+                <div class="error-icon">⚠️</div>
+                <h3 id="errorTitle">Something went wrong</h3>
+                <p id="errorMessage">Please try again</p>
+                <button class="retry-btn" id="retryBtn">Retry</button>
+            </div>
+
+            <div id="dashboardContent" style="display: none;">
+                <div class="user-profile" id="userProfile">
+                    <!-- User profile will be populated here -->
+                </div>
+
+                <div class="insights" id="insights">
+                    <!-- Insights will be populated here -->
+                </div>
+
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Stats cards will be populated here -->
+                </div>
+
+                <div class="content-section" id="reposSection" style="display: none;">
+                    <div class="section-header">
+                        <h3 class="section-title">⭐ Top Starred Repositories</h3>
+                    </div>
+                    <div class="items-grid" id="reposGrid">
+                        <!-- Repository cards will be populated here -->
+                    </div>
+                </div>
+
+                <div class="content-section" id="prsSection" style="display: none;">
+                    <div class="section-header">
+                        <h3 class="section-title">🔀 All PRs</h3>
+                    </div>
+                    <div class="tabs">
+                        <button class="tab active" data-tab="open" id="openTab">Open (<span
+                                id="openCount">0</span>)</button>
+                        <button class="tab" data-tab="discarded" id="discardedTab">Discarded (<span
+                                id="discardedCount">0</span>)</button>
+                        <button class="tab" data-tab="merged" id="mergedTab">Merged (<span
+                                id="mergedCount">0</span>)</button>
+                    </div>
+                    <div class="tab-content active" id="openContent">
+                        <div class="items-grid" id="openPRsGrid"></div>
+                    </div>
+                    <div class="tab-content" id="discardedContent">
+                        <div class="items-grid" id="discardedPRsGrid"></div>
+                    </div>
+                    <div class="tab-content" id="mergedContent">
+                        <div class="items-grid" id="mergedPRsGrid"></div>
+                    </div>
+                </div>
+
+                <div class="encouragement-section" id="encouragementSection" style="display: none;">
+                    <h2>🚀 Start Your Open Source Journey!</h2>
+                    <p class="subtitle">Contributing to open source can be scary, but it's SO rewarding!</p>
+
+                    <div class="encouragement-content">
+                        <h3>✨ You can do it! Here's how:</h3>
+
+                        <div class="resources-grid">
+                            <div class="resource-card">
+                                <h4>🎯 First Contributions</h4>
+                                <p>A hands-on tutorial that walks you through your first contribution workflow on
+                                    GitHub.</p>
+                                <a href="https://github.com/firstcontributions/first-contributions" target="_blank"
+                                    class="resource-link">Get Started →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>🎁 Good First Issues</h4>
+                                <p>Find beginner-friendly issues from popular open-source projects to tackle.</p>
+                                <a href="https://goodfirstissue.dev/" target="_blank" class="resource-link">Find Issues
+                                    →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>🆙 Up For Grabs</h4>
+                                <p>Projects that actively want help, labeled with "up-for-grabs" or "help wanted".</p>
+                                <a href="https://up-for-grabs.net/" target="_blank" class="resource-link">Explore
+                                    Projects →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>💊 CodeTriage</h4>
+                                <p>Subscribe to your favorite projects and get a new open issue in your inbox daily.</p>
+                                <a href="https://www.codetriage.com/" target="_blank" class="resource-link">Subscribe
+                                    →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>🔍 First PR</h4>
+                                <p>See what other developers' first pull requests looked like. You'll be surprised!</p>
+                                <a href="https://firstpr.me/" target="_blank" class="resource-link">Check It Out →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>📚 Learn More</h4>
+                                <p>Read guides and blog posts on how to contribute to open source projects.</p>
+                                <a href="https://www.firsttimersonly.com/" target="_blank" class="resource-link">Read
+                                    Guides →</a>
+                            </div>
+                        </div>
+
+                        <div class="encouragement-quote">
+                            "Proud and excited. Added a feature to freecodecamp. Felt welcomed and wondered what else I
+                            was able to do." - A first-time contributor
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class GitHubDashboard {
+            constructor() {
+                this.currentUser = null;
+                this.userData = {
+                    profile: null,
+                    repos: [],
+                    openPRs: [],
+                    discardedPRs: [],
+                    mergedPRs: []
+                };
+                this.initializeEventListeners();
+            }
+
+            initializeEventListeners() {
+                const analyzeBtn = document.getElementById('analyzeBtn');
+                const usernameInput = document.getElementById('usernameInput');
+                const retryBtn = document.getElementById('retryBtn');
+
+                analyzeBtn.addEventListener('click', () => this.analyzeUser());
+                usernameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.analyzeUser();
+                });
+                retryBtn.addEventListener('click', () => this.analyzeUser());
+
+                // Tab switching
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
+                });
+
+                // Stats card interaction
+                document.addEventListener('click', (e) => {
+                    if (e.target.closest('.stat-card')) {
+                        const card = e.target.closest('.stat-card');
+                        const type = card.dataset.type;
+                        if (type && type !== 'repos') {
+                            this.switchTab(type);
+                        }
+                    }
+                });
+            }
+
+            async analyzeUser() {
+                const username = document.getElementById('usernameInput').value.trim();
+                if (!username) {
+                    this.showError('Please enter a GitHub username', '');
+                    return;
+                }
+
+                this.currentUser = username;
+                this.showLoading();
+
+                try {
+                    await this.fetchAllData(username);
+                    this.renderDashboard();
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    this.showError('Failed to fetch GitHub data', error.message);
+                }
+            }
+
+            async fetchAllData(username) {
+                const baseURL = 'https://api.github.com';
+
+                // Fetch user profile
+                const profileResponse = await fetch(`${baseURL}/users/${username}`);
+                if (!profileResponse.ok) {
+                    throw new Error(profileResponse.status === 404 ? 'User not found' : 'Failed to fetch user profile');
+                }
+                this.userData.profile = await profileResponse.json();
+
+                // Fetch repositories
+                const reposResponse = await fetch(`${baseURL}/users/${username}/repos?type=source&sort=updated&per_page=100`);
+                if (!reposResponse.ok) {
+                    throw new Error('Failed to fetch repositories');
+                }
+                this.userData.repos = await reposResponse.json();
+
+                // Fetch PRs (using search API)
+                await this.fetchPRs(username);
+            }
+
+            async fetchPRs(username) {
+                const baseURL = 'https://api.github.com/search/issues';
+
+                // Fetch open PRs
+                try {
+                    const openResponse = await fetch(`${baseURL}?q=author:${username}+-owner:${username}+type:pr+state:open&per_page=100`);
+                    if (openResponse.ok) {
+                        const openData = await openResponse.json();
+                        this.userData.openPRs = openData.items || [];
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch open PRs:', e);
+                    this.userData.openPRs = [];
+                }
+
+                // Fetch discarded (non-merged) PRs
+                try {
+                    const discardedResponse = await fetch(`${baseURL}?q=author:${username}+-owner:${username}+type:pr+state:closed+-is:merged&per_page=100`);
+                    if (discardedResponse.ok) {
+                        const discardedData = await discardedResponse.json();
+                        this.userData.discardedPRs = discardedData.items || [];
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch discarded PRs:', e);
+                    this.userData.discardedPRs = [];
+                }
+
+                // Fetch merged PRs
+                try {
+                    const mergedResponse = await fetch(`${baseURL}?q=author:${username}+-owner:${username}+type:pr+state:closed+is:merged&per_page=100`);
+                    if (mergedResponse.ok) {
+                        const mergedData = await mergedResponse.json();
+                        this.userData.mergedPRs = mergedData.items || [];
+                    }
+                } catch (e) {
+                    console.warn('Failed to fetch merged PRs:', e);
+                    this.userData.mergedPRs = [];
+                }
+            }
+
+            showLoading() {
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = true;
+            }
+
+            showError(title, message) {
+                document.getElementById('errorTitle').textContent = title;
+                document.getElementById('errorMessage').textContent = message;
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('dashboardContent').style.display = 'none';
+                document.getElementById('analyzeBtn').disabled = false;
+            }
+
+            renderDashboard() {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('analyzeBtn').disabled = false;
+
+                this.renderUserProfile();
+                this.renderInsights();
+                this.renderStatsCards();
+                this.renderRepositoryStars();
+                this.renderPRs();
+            }
+
+            renderUserProfile() {
+                const profile = this.userData.profile;
+                const userProfile = document.getElementById('userProfile');
+
+                const joinDate = new Date(profile.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long'
+                });
+
+                userProfile.innerHTML = `
+                    <img src="${profile.avatar_url}" alt="${profile.name || profile.login}" class="user-avatar">
+                    <div class="user-info">
+                        <h2>@${profile.login}</h2>
+                        <div class="user-meta">
+                            <span>📅 Joined ${joinDate}</span>
+                            ${profile.location ? `<span>📍 ${profile.location}</span>` : ''}
+                            ${profile.company ? `<span>🏢 ${profile.company}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            renderInsights() {
+                const totalPRs = this.userData.openPRs.length + this.userData.discardedPRs.length + this.userData.mergedPRs.length;
+                const mergeRate = totalPRs > 0 ? ((this.userData.mergedPRs.length / totalPRs) * 100).toFixed(1) : 0;
+                const totalStars = this.userData.repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+                const totalContributions = totalPRs;
+                const repoCount = this.userData.repos.length;
+
+                // Calculate median of non-zero star counts
+                const starredRepos = this.userData.repos.filter(repo => repo.stargazers_count > 0);
+                let showTotalStars = false;
+
+                if (starredRepos.length > 0) {
+                    const starCounts = starredRepos.map(repo => repo.stargazers_count).sort((a, b) => a - b);
+                    const medianIndex = Math.floor(starCounts.length / 2);
+                    const median = starCounts.length % 2 === 0
+                        ? (starCounts[medianIndex - 1] + starCounts[medianIndex]) / 2
+                        : starCounts[medianIndex];
+
+                    showTotalStars = totalStars > median;
+                }
+
+                // Show encouragement section if no contributions or no repos
+                const encouragementSection = document.getElementById('encouragementSection');
+                if (totalContributions === 0 || repoCount === 0) {
+                    encouragementSection.style.display = 'block';
+                } else {
+                    encouragementSection.style.display = 'none';
+                }
+
+                // Hide PR section if no contributions
+                const prsSection = document.getElementById('prsSection');
+                if (totalContributions === 0) {
+                    prsSection.style.display = 'none';
+                } else {
+                    prsSection.style.display = 'block';
+                }
+
+                // Hide insights section if it would be empty
+                // Show only when there's meaningful data to display:
+                // - If no contributions: show only if there are impressive stars
+                // - If contributions exist: show only if there are also impressive stars
+                const insights = document.getElementById('insights');
+                const shouldShowInsights = showTotalStars && (totalContributions === 0 || totalContributions > 0);
+
+                if (!shouldShowInsights) {
+                    insights.style.display = 'none';
+                } else {
+                    insights.style.display = 'block';
+                    insights.innerHTML = `
+                        <h3>📊 Key Insights</h3>
+                        <div class="insight-stats">
+                            ${totalContributions > 0 ? `<span>Merge Rate: ${mergeRate}%</span>` : ''}
+                            ${showTotalStars ? `<span>Total Stars: ${totalStars}</span>` : ''}
+                            ${totalContributions > 0 ? `<span>Total Contributions: ${totalContributions}</span>` : ''}
+                        </div>
+                    `;
+                }
+
+            }
+            renderStatsCards() {
+                const statsGrid = document.getElementById('statsGrid');
+                const repoCount = this.userData.repos.length;
+                const openCount = this.userData.openPRs.length;
+                const discardedCount = this.userData.discardedPRs.length;
+                const mergedCount = this.userData.mergedPRs.length;
+                const totalContributions = openCount + discardedCount + mergedCount;
+
+                // Hide stats grid if both contributions and repos are 0
+                if (totalContributions === 0 && repoCount === 0) {
+                    statsGrid.style.display = 'none';
+                    return;
+                }
+
+                statsGrid.style.display = 'grid';
+                statsGrid.innerHTML = `
+                    <div class="stat-card" data-type="repos">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-number">${repoCount}</div>
+                        <div class="stat-label">Repositories</div>
+                    </div>
+                    <div class="stat-card" data-type="open">
+                        <div class="stat-icon">🟡</div>
+                        <div class="stat-number">${openCount}</div>
+                        <div class="stat-label">Open PRs</div>
+                    </div>
+                    <div class="stat-card" data-type="discarded">
+                        <div class="stat-icon">🔴</div>
+                        <div class="stat-number">${discardedCount}</div>
+                        <div class="stat-label">Discarded PRs</div>
+                    </div>
+                    <div class="stat-card" data-type="merged">
+                        <div class="stat-icon">🟢</div>
+                        <div class="stat-number">${mergedCount}</div>
+                        <div class="stat-label">Merged PRs</div>
+                    </div>
+                `;
+
+                // Update tab counts
+                document.getElementById('openCount').textContent = openCount;
+                document.getElementById('discardedCount').textContent = discardedCount;
+                document.getElementById('mergedCount').textContent = mergedCount;
+            }
+
+            renderRepositoryStars() {
+                // Filter repos with stars > 0 and sort by star count descending
+                const starredRepos = this.userData.repos
+                    .filter(repo => repo.stargazers_count > 0)
+                    .sort((a, b) => b.stargazers_count - a.stargazers_count);
+
+                const reposSection = document.getElementById('reposSection');
+                const reposGrid = document.getElementById('reposGrid');
+
+                if (starredRepos.length === 0) {
+                    reposSection.style.display = 'none';
+                    return;
+                }
+
+                // Calculate median of non-zero star counts
+                const starCounts = starredRepos.map(repo => repo.stargazers_count).sort((a, b) => a - b);
+                const medianIndex = Math.floor(starCounts.length / 2);
+                const median = starCounts.length % 2 === 0
+                    ? (starCounts[medianIndex - 1] + starCounts[medianIndex]) / 2
+                    : starCounts[medianIndex];
+
+                // Filter repos with stars > median
+                const aboveMedianRepos = starredRepos.filter(repo => repo.stargazers_count > median);
+
+                if (aboveMedianRepos.length === 0) {
+                    reposSection.style.display = 'none';
+                    return;
+                }
+
+                reposSection.style.display = 'block';
+
+                reposGrid.innerHTML = aboveMedianRepos.map((repo, index) => {
+                    const description = repo.description ? repo.description : '<em>No description</em>';
+                    return `
+                        <div class="repo-card">
+                            <div class="repo-card-header">
+                                <span class="repo-rank">#${index + 1}</span>
+                            </div>
+                            <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
+                            <div class="repo-description">${description}</div>
+                            <div class="star-count">⭐ ${repo.stargazers_count.toLocaleString()}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            renderPRs() {
+                this.renderPRGrid('openPRsGrid', this.userData.openPRs, 'open');
+                this.renderPRGrid('discardedPRsGrid', this.userData.discardedPRs, 'discarded');
+                this.renderPRGrid('mergedPRsGrid', this.userData.mergedPRs, 'merged');
+            }
+
+            renderPRGrid(gridId, prs, state) {
+                const grid = document.getElementById(gridId);
+
+                if (prs.length === 0) {
+                    const stateEmojis = { open: '🟡', discarded: '🔴', merged: '🟢' };
+                    const stateLabels = { open: 'open', discarded: 'discarded', merged: 'merged' };
+
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">${stateEmojis[state]}</div>
+                            <h4>No ${stateLabels[state]} pull requests</h4>
+                            <p>No ${stateLabels[state]} pull requests found for this user.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = prs.map(pr => {
+                    const repoName = pr.repository_url.split('/').slice(-2).join('/');
+                    const createdDate = new Date(pr.created_at).toLocaleDateString();
+                    const prNumber = pr.number;
+                    const comments = pr.comments || 0;
+
+                    return `
+                        <div class="item-card">
+                            <a href="${pr.html_url}" target="_blank" class="item-title">
+                                ${repoName} #${prNumber}
+                                <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
+                            </a>
+                            <p class="item-description">${pr.title}</p>
+                            <div class="item-meta">
+                                <span class="meta-item">Created ${createdDate}</span>
+                                <span class="meta-item">💬 ${comments} comments</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            switchTab(tabName) {
+                // Update tab buttons
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabName}Content`).classList.add('active');
+
+                // Update stat cards
+                document.querySelectorAll('.stat-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                const activeCard = document.querySelector(`[data-type="${tabName}"]`);
+                if (activeCard) {
+                    activeCard.classList.add('active');
+                }
+            }
+        }
+
+        // Initialize the dashboard when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new GitHubDashboard();
+        });
+    </script>
+</body>
+
+</html>
