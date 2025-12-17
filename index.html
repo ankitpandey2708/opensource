@@ -966,12 +966,9 @@
                     prsSection.style.display = 'block';
                 }
 
-                // Hide insights section if it would be empty
-                // Show only when there's meaningful data to display:
-                // - If no contributions: show only if there are impressive stars
-                // - If contributions exist: show only if there are also impressive stars
+                // Hide insights section if it would be empty (no contributions and no impressive stars)
                 const insights = document.getElementById('insights');
-                const shouldShowInsights = showTotalStars && (totalContributions === 0 || totalContributions > 0);
+                const shouldShowInsights = totalContributions > 0 || showTotalStars;
 
                 if (!shouldShowInsights) {
                     insights.style.display = 'none';
