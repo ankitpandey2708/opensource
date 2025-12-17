@@ -767,19 +767,27 @@
                     discardedPRs: [],
                     mergedPRs: []
                 };
+
+                // Constants for PR states
+                this.PR_STATES = {
+                    open: { emoji: '🟡', label: 'open', query: 'state:open' },
+                    discarded: { emoji: '🔴', label: 'discarded', query: 'state:closed+-is:merged' },
+                    merged: { emoji: '🟢', label: 'merged', query: 'state:closed+is:merged' }
+                };
+
                 this.initializeEventListeners();
             }
 
             initializeEventListeners() {
-                const analyzeBtn = document.getElementById('analyzeBtn');
-                const usernameInput = document.getElementById('usernameInput');
-                const retryBtn = document.getElementById('retryBtn');
+                const handlers = [
+                    { id: 'analyzeBtn', event: 'click', handler: () => this.analyzeUser() },
+                    { id: 'usernameInput', event: 'keypress', handler: (e) => e.key === 'Enter' && this.analyzeUser() },
+                    { id: 'retryBtn', event: 'click', handler: () => this.analyzeUser() }
+                ];
 
-                analyzeBtn.addEventListener('click', () => this.analyzeUser());
-                usernameInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') this.analyzeUser();
+                handlers.forEach(({ id, event, handler }) => {
+                    document.getElementById(id).addEventListener(event, handler);
                 });
-                retryBtn.addEventListener('click', () => this.analyzeUser());
 
                 // Tab switching
                 document.querySelectorAll('.tab').forEach(tab => {
@@ -788,12 +796,9 @@
 
                 // Stats card interaction
                 document.addEventListener('click', (e) => {
-                    if (e.target.closest('.stat-card')) {
-                        const card = e.target.closest('.stat-card');
-                        const type = card.dataset.type;
-                        if (type && type !== 'repos') {
-                            this.switchTab(type);
-                        }
+                    const card = e.target.closest('.stat-card');
+                    if (card?.dataset.type && card.dataset.type !== 'repos') {
+                        this.switchTab(card.dataset.type);
                     }
                 });
             }
@@ -806,10 +811,11 @@
                 }
 
                 this.currentUser = username;
-                this.showLoading();
+                this.setState('loading');
 
                 try {
                     await this.fetchAllData(username);
+                    this.setState('dashboard');
                     this.renderDashboard();
                 } catch (error) {
                     console.error('Error fetching data:', error);
@@ -840,66 +846,45 @@
 
             async fetchPRs(username) {
                 const baseURL = 'https://api.github.com/search/issues';
+                const prTypes = ['openPRs', 'discardedPRs', 'mergedPRs'];
+                const states = Object.keys(this.PR_STATES);
 
-                // Fetch open PRs
-                try {
-                    const openResponse = await fetch(`${baseURL}?q=author:${username}+-owner:${username}+type:pr+state:open&per_page=100`);
-                    if (openResponse.ok) {
-                        const openData = await openResponse.json();
-                        this.userData.openPRs = openData.items || [];
+                await Promise.all(states.map(async (state, index) => {
+                    try {
+                        const query = `author:${username}+-owner:${username}+type:pr+${this.PR_STATES[state].query}`;
+                        const response = await fetch(`${baseURL}?q=${query}&per_page=100`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.userData[prTypes[index]] = data.items || [];
+                        }
+                    } catch (e) {
+                        console.warn(`Failed to fetch ${state} PRs:`, e);
+                        this.userData[prTypes[index]] = [];
                     }
-                } catch (e) {
-                    console.warn('Failed to fetch open PRs:', e);
-                    this.userData.openPRs = [];
-                }
-
-                // Fetch discarded (non-merged) PRs
-                try {
-                    const discardedResponse = await fetch(`${baseURL}?q=author:${username}+-owner:${username}+type:pr+state:closed+-is:merged&per_page=100`);
-                    if (discardedResponse.ok) {
-                        const discardedData = await discardedResponse.json();
-                        this.userData.discardedPRs = discardedData.items || [];
-                    }
-                } catch (e) {
-                    console.warn('Failed to fetch discarded PRs:', e);
-                    this.userData.discardedPRs = [];
-                }
-
-                // Fetch merged PRs
-                try {
-                    const mergedResponse = await fetch(`${baseURL}?q=author:${username}+-owner:${username}+type:pr+state:closed+is:merged&per_page=100`);
-                    if (mergedResponse.ok) {
-                        const mergedData = await mergedResponse.json();
-                        this.userData.mergedPRs = mergedData.items || [];
-                    }
-                } catch (e) {
-                    console.warn('Failed to fetch merged PRs:', e);
-                    this.userData.mergedPRs = [];
-                }
+                }));
             }
 
-            showLoading() {
-                document.getElementById('loadingState').style.display = 'block';
-                document.getElementById('errorState').style.display = 'none';
-                document.getElementById('dashboardContent').style.display = 'none';
-                document.getElementById('analyzeBtn').disabled = true;
+            setState(state) {
+                const states = {
+                    loading: { loading: 'block', error: 'none', dashboard: 'none', button: true },
+                    error: { loading: 'none', error: 'block', dashboard: 'none', button: false },
+                    dashboard: { loading: 'none', error: 'none', dashboard: 'block', button: false }
+                };
+
+                const config = states[state];
+                document.getElementById('loadingState').style.display = config.loading;
+                document.getElementById('errorState').style.display = config.error;
+                document.getElementById('dashboardContent').style.display = config.dashboard;
+                document.getElementById('analyzeBtn').disabled = config.button;
             }
 
             showError(title, message) {
                 document.getElementById('errorTitle').textContent = title;
                 document.getElementById('errorMessage').textContent = message;
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('errorState').style.display = 'block';
-                document.getElementById('dashboardContent').style.display = 'none';
-                document.getElementById('analyzeBtn').disabled = false;
+                this.setState('error');
             }
 
             renderDashboard() {
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('errorState').style.display = 'none';
-                document.getElementById('dashboardContent').style.display = 'block';
-                document.getElementById('analyzeBtn').disabled = false;
-
                 this.renderUserProfile();
                 this.renderInsights();
                 this.renderStatsCards();
@@ -909,148 +894,124 @@
 
             renderUserProfile() {
                 const profile = this.userData.profile;
-                const userProfile = document.getElementById('userProfile');
-
                 const joinDate = new Date(profile.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long'
                 });
 
-                userProfile.innerHTML = `
+                const metaItems = [
+                    { icon: '📅', value: `Joined ${joinDate}`, show: true },
+                    { icon: '📍', value: profile.location, show: !!profile.location },
+                    { icon: '🏢', value: profile.company, show: !!profile.company }
+                ];
+
+                const metaHTML = metaItems
+                    .filter(item => item.show)
+                    .map(item => `<span>${item.icon} ${item.value}</span>`)
+                    .join('');
+
+                document.getElementById('userProfile').innerHTML = `
                     <img src="${profile.avatar_url}" alt="${profile.name || profile.login}" class="user-avatar">
                     <div class="user-info">
                         <h2>@${profile.login}</h2>
-                        <div class="user-meta">
-                            <span>📅 Joined ${joinDate}</span>
-                            ${profile.location ? `<span>📍 ${profile.location}</span>` : ''}
-                            ${profile.company ? `<span>🏢 ${profile.company}</span>` : ''}
-                        </div>
+                        <div class="user-meta">${metaHTML}</div>
                     </div>
                 `;
             }
 
-            renderInsights() {
-                const totalPRs = this.userData.openPRs.length + this.userData.discardedPRs.length + this.userData.mergedPRs.length;
-                const mergeRate = totalPRs > 0 ? ((this.userData.mergedPRs.length / totalPRs) * 100).toFixed(1) : 0;
-                const totalStars = this.userData.repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
-                const totalContributions = totalPRs;
-                const repoCount = this.userData.repos.length;
+            calculateMedian(repos) {
+                const starredRepos = repos.filter(repo => repo.stargazers_count > 0);
+                if (starredRepos.length === 0) return { median: 0, totalStars: 0, showStars: false };
 
-                // Calculate median of non-zero star counts
-                const starredRepos = this.userData.repos.filter(repo => repo.stargazers_count > 0);
-                let showTotalStars = false;
-
-                if (starredRepos.length > 0) {
-                    const starCounts = starredRepos.map(repo => repo.stargazers_count).sort((a, b) => a - b);
-                    const medianIndex = Math.floor(starCounts.length / 2);
-                    const median = starCounts.length % 2 === 0
-                        ? (starCounts[medianIndex - 1] + starCounts[medianIndex]) / 2
-                        : starCounts[medianIndex];
-
-                    showTotalStars = totalStars > median;
-                }
-
-                // Show encouragement section if no contributions or no repos
-                const encouragementSection = document.getElementById('encouragementSection');
-                if (totalContributions === 0 || repoCount === 0) {
-                    encouragementSection.style.display = 'block';
-                } else {
-                    encouragementSection.style.display = 'none';
-                }
-
-                // Hide PR section if no contributions
-                const prsSection = document.getElementById('prsSection');
-                if (totalContributions === 0) {
-                    prsSection.style.display = 'none';
-                } else {
-                    prsSection.style.display = 'block';
-                }
-
-                // Hide insights section if it would be empty (no contributions and no impressive stars)
-                const insights = document.getElementById('insights');
-                const shouldShowInsights = totalContributions > 0 || showTotalStars;
-
-                if (!shouldShowInsights) {
-                    insights.style.display = 'none';
-                } else {
-                    insights.style.display = 'block';
-                    insights.innerHTML = `
-                        <h3>📊 Key Insights</h3>
-                        <div class="insight-stats">
-                            ${totalContributions > 0 ? `<span>Merge Rate: ${mergeRate}%</span>` : ''}
-                            ${showTotalStars ? `<span>Total Stars: ${totalStars}</span>` : ''}
-                            ${totalContributions > 0 ? `<span>Total Contributions: ${totalContributions}</span>` : ''}
-                        </div>
-                    `;
-                }
-
-            }
-            renderStatsCards() {
-                const statsGrid = document.getElementById('statsGrid');
-                const repoCount = this.userData.repos.length;
-                const openCount = this.userData.openPRs.length;
-                const discardedCount = this.userData.discardedPRs.length;
-                const mergedCount = this.userData.mergedPRs.length;
-                const totalContributions = openCount + discardedCount + mergedCount;
-
-                // Hide stats grid if both contributions and repos are 0
-                if (totalContributions === 0 && repoCount === 0) {
-                    statsGrid.style.display = 'none';
-                    return;
-                }
-
-                statsGrid.style.display = 'grid';
-                statsGrid.innerHTML = `
-                    <div class="stat-card" data-type="repos">
-                        <div class="stat-icon">📦</div>
-                        <div class="stat-number">${repoCount}</div>
-                        <div class="stat-label">Repositories</div>
-                    </div>
-                    <div class="stat-card" data-type="open">
-                        <div class="stat-icon">🟡</div>
-                        <div class="stat-number">${openCount}</div>
-                        <div class="stat-label">Open PRs</div>
-                    </div>
-                    <div class="stat-card" data-type="discarded">
-                        <div class="stat-icon">🔴</div>
-                        <div class="stat-number">${discardedCount}</div>
-                        <div class="stat-label">Discarded PRs</div>
-                    </div>
-                    <div class="stat-card" data-type="merged">
-                        <div class="stat-icon">🟢</div>
-                        <div class="stat-number">${mergedCount}</div>
-                        <div class="stat-label">Merged PRs</div>
-                    </div>
-                `;
-
-                // Update tab counts
-                document.getElementById('openCount').textContent = openCount;
-                document.getElementById('discardedCount').textContent = discardedCount;
-                document.getElementById('mergedCount').textContent = mergedCount;
-            }
-
-            renderRepositoryStars() {
-                // Filter repos with stars > 0 and sort by star count descending
-                const starredRepos = this.userData.repos
-                    .filter(repo => repo.stargazers_count > 0)
-                    .sort((a, b) => b.stargazers_count - a.stargazers_count);
-
-                const reposSection = document.getElementById('reposSection');
-                const reposGrid = document.getElementById('reposGrid');
-
-                if (starredRepos.length === 0) {
-                    reposSection.style.display = 'none';
-                    return;
-                }
-
-                // Calculate median of non-zero star counts
                 const starCounts = starredRepos.map(repo => repo.stargazers_count).sort((a, b) => a - b);
                 const medianIndex = Math.floor(starCounts.length / 2);
                 const median = starCounts.length % 2 === 0
                     ? (starCounts[medianIndex - 1] + starCounts[medianIndex]) / 2
                     : starCounts[medianIndex];
 
-                // Filter repos with stars > median
+                const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+                return { median, totalStars, showStars: totalStars > median };
+            }
+
+            renderInsights() {
+                const totalPRs = this.userData.openPRs.length + this.userData.discardedPRs.length + this.userData.mergedPRs.length;
+                const mergeRate = totalPRs > 0 ? ((this.userData.mergedPRs.length / totalPRs) * 100).toFixed(1) : 0;
+                const { showStars, totalStars } = this.calculateMedian(this.userData.repos);
+                const repoCount = this.userData.repos.length;
+
+                // Toggle section visibility
+                this.toggleElement('encouragementSection', totalPRs === 0 || repoCount === 0);
+                this.toggleElement('prsSection', totalPRs > 0);
+
+                const insights = document.getElementById('insights');
+                const shouldShowInsights = totalPRs > 0 || showStars;
+
+                if (!shouldShowInsights) {
+                    insights.style.display = 'none';
+                    return;
+                }
+
+                const insightItems = [
+                    { label: 'Merge Rate', value: `${mergeRate}%`, show: totalPRs > 0 },
+                    { label: 'Total Stars', value: totalStars, show: showStars },
+                    { label: 'Total Contributions', value: totalPRs, show: totalPRs > 0 }
+                ];
+
+                const insightsHTML = insightItems
+                    .filter(item => item.show)
+                    .map(item => `<span>${item.label}: ${item.value}</span>`)
+                    .join('');
+
+                insights.style.display = 'block';
+                insights.innerHTML = `
+                    <h3>📊 Key Insights</h3>
+                    <div class="insight-stats">${insightsHTML}</div>
+                `;
+            }
+
+            renderStatsCards() {
+                const stats = [
+                    { type: 'repos', icon: '📦', count: this.userData.repos.length, label: 'Repositories' },
+                    { type: 'open', icon: '🟡', count: this.userData.openPRs.length, label: 'Open PRs' },
+                    { type: 'discarded', icon: '🔴', count: this.userData.discardedPRs.length, label: 'Discarded PRs' },
+                    { type: 'merged', icon: '🟢', count: this.userData.mergedPRs.length, label: 'Merged PRs' }
+                ];
+
+                const totalContributions = stats.slice(1).reduce((sum, s) => sum + s.count, 0);
+                const statsGrid = document.getElementById('statsGrid');
+
+                if (totalContributions === 0 && stats[0].count === 0) {
+                    statsGrid.style.display = 'none';
+                    return;
+                }
+
+                statsGrid.style.display = 'grid';
+                statsGrid.innerHTML = stats.map(({ type, icon, count, label }) => `
+                    <div class="stat-card" data-type="${type}">
+                        <div class="stat-icon">${icon}</div>
+                        <div class="stat-number">${count}</div>
+                        <div class="stat-label">${label}</div>
+                    </div>
+                `).join('');
+
+                // Update tab counts
+                ['open', 'discarded', 'merged'].forEach((type, i) => {
+                    document.getElementById(`${type}Count`).textContent = stats[i + 1].count;
+                });
+            }
+
+            renderRepositoryStars() {
+                const starredRepos = this.userData.repos
+                    .filter(repo => repo.stargazers_count > 0)
+                    .sort((a, b) => b.stargazers_count - a.stargazers_count);
+
+                const reposSection = document.getElementById('reposSection');
+                if (starredRepos.length === 0) {
+                    reposSection.style.display = 'none';
+                    return;
+                }
+
+                const { median } = this.calculateMedian(this.userData.repos);
                 const aboveMedianRepos = starredRepos.filter(repo => repo.stargazers_count > median);
 
                 if (aboveMedianRepos.length === 0) {
@@ -1059,40 +1020,38 @@
                 }
 
                 reposSection.style.display = 'block';
-
-                reposGrid.innerHTML = aboveMedianRepos.map((repo, index) => {
-                    const description = repo.description ? repo.description : '<em>No description</em>';
-                    return `
-                        <div class="repo-card">
-                            <div class="repo-card-header">
-                                <span class="repo-rank">#${index + 1}</span>
-                            </div>
-                            <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
-                            <div class="repo-description">${description}</div>
-                            <div class="star-count">⭐ ${repo.stargazers_count.toLocaleString()}</div>
+                document.getElementById('reposGrid').innerHTML = aboveMedianRepos.map((repo, index) => `
+                    <div class="repo-card">
+                        <div class="repo-card-header">
+                            <span class="repo-rank">#${index + 1}</span>
                         </div>
-                    `;
-                }).join('');
+                        <a href="${repo.html_url}" target="_blank" class="repo-name">${repo.name}</a>
+                        <div class="repo-description">${repo.description || '<em>No description</em>'}</div>
+                        <div class="star-count">⭐ ${repo.stargazers_count.toLocaleString()}</div>
+                    </div>
+                `).join('');
             }
 
             renderPRs() {
-                this.renderPRGrid('openPRsGrid', this.userData.openPRs, 'open');
-                this.renderPRGrid('discardedPRsGrid', this.userData.discardedPRs, 'discarded');
-                this.renderPRGrid('mergedPRsGrid', this.userData.mergedPRs, 'merged');
+                const prGrids = [
+                    { gridId: 'openPRsGrid', prs: this.userData.openPRs, state: 'open' },
+                    { gridId: 'discardedPRsGrid', prs: this.userData.discardedPRs, state: 'discarded' },
+                    { gridId: 'mergedPRsGrid', prs: this.userData.mergedPRs, state: 'merged' }
+                ];
+
+                prGrids.forEach(({ gridId, prs, state }) => this.renderPRGrid(gridId, prs, state));
             }
 
             renderPRGrid(gridId, prs, state) {
                 const grid = document.getElementById(gridId);
+                const stateConfig = this.PR_STATES[state];
 
                 if (prs.length === 0) {
-                    const stateEmojis = { open: '🟡', discarded: '🔴', merged: '🟢' };
-                    const stateLabels = { open: 'open', discarded: 'discarded', merged: 'merged' };
-
                     grid.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-state-icon">${stateEmojis[state]}</div>
-                            <h4>No ${stateLabels[state]} pull requests</h4>
-                            <p>No ${stateLabels[state]} pull requests found for this user.</p>
+                            <div class="empty-state-icon">${stateConfig.emoji}</div>
+                            <h4>No ${stateConfig.label} pull requests</h4>
+                            <p>No ${stateConfig.label} pull requests found for this user.</p>
                         </div>
                     `;
                     return;
@@ -1101,19 +1060,16 @@
                 grid.innerHTML = prs.map(pr => {
                     const repoName = pr.repository_url.split('/').slice(-2).join('/');
                     const createdDate = new Date(pr.created_at).toLocaleDateString();
-                    const prNumber = pr.number;
-                    const comments = pr.comments || 0;
-
                     return `
                         <div class="item-card">
                             <a href="${pr.html_url}" target="_blank" class="item-title">
-                                ${repoName} #${prNumber}
+                                ${repoName} #${pr.number}
                                 <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
                             </a>
                             <p class="item-description">${pr.title}</p>
                             <div class="item-meta">
                                 <span class="meta-item">Created ${createdDate}</span>
-                                <span class="meta-item">💬 ${comments} comments</span>
+                                <span class="meta-item">💬 ${pr.comments || 0} comments</span>
                             </div>
                         </div>
                     `;
@@ -1121,26 +1077,19 @@
             }
 
             switchTab(tabName) {
-                // Update tab buttons
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                this.toggleClass('.tab', 'active', `[data-tab="${tabName}"]`);
+                this.toggleClass('.tab-content', 'active', `#${tabName}Content`);
+                this.toggleClass('.stat-card', 'active', `[data-type="${tabName}"]`);
+            }
 
-                // Update tab content
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                document.getElementById(`${tabName}Content`).classList.add('active');
+            toggleClass(selector, className, activeSelector) {
+                document.querySelectorAll(selector).forEach(el => el.classList.remove(className));
+                const activeEl = document.querySelector(activeSelector);
+                if (activeEl) activeEl.classList.add(className);
+            }
 
-                // Update stat cards
-                document.querySelectorAll('.stat-card').forEach(card => {
-                    card.classList.remove('active');
-                });
-                const activeCard = document.querySelector(`[data-type="${tabName}"]`);
-                if (activeCard) {
-                    activeCard.classList.add('active');
-                }
+            toggleElement(id, show) {
+                document.getElementById(id).style.display = show ? 'block' : 'none';
             }
         }
 
