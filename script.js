@@ -426,7 +426,7 @@ class GitHubDashboard {
                 return `
                     <a href="${pr.html_url}" target="_blank" class="item-card">
                         <div class="item-title">
-                            <span class="org-badge">${orgName}</span> / ${repoName} #${pr.number}
+                            ${repoName} #${pr.number}
                             <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
                         </div>
                         <p class="item-description">${pr.title}</p>

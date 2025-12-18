@@ -1472,7 +1472,7 @@ body::after {
    OTHER CONTRIBUTIONS SECTION
    ======================================== */
 .other-contributions {
-    margin-top: 60px;
+    margin-top: 30px;
     margin-bottom: 30px;
 }
 
@@ -1500,16 +1500,4 @@ body::after {
     text-transform: uppercase;
     white-space: nowrap;
     padding: 0 10px;
-}
-
-.org-badge {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--accent-purple);
-    background: rgba(162, 119, 255, 0.1);
-    padding: 2px 8px;
-    border: 1px solid rgba(162, 119, 255, 0.3);
-    margin-right: 4px;
 }
