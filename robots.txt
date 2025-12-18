@@ -1,0 +1,11 @@
+# robots.txt for ForkLift - GitHub PR Tracker
+# https://ankitpandey2708.github.io/opensource/
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://ankitpandey2708.github.io/opensource/sitemap.xml
+
+# Crawl delay (optional - prevents overloading)
+Crawl-delay: 1

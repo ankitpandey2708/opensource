@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForkLift | Lifting up other projects, one PR at a time.</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" id="meta-description"
+        content="Track your open source contributions across GitHub. ForkLift analyzes your external pull requests, showing open, merged, and discarded PRs in other people's repositories.">
+    <meta name="keywords"
+        content="GitHub, open source, pull requests, contributions, PR tracker, GitHub analytics, developer portfolio, GitHub dashboard, contribution tracker">
+    <meta name="author" content="ForkLift">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="canonical" id="canonical-url" href="https://ankitpandey2708.github.io/opensource/">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" id="og-title" content="ForkLift | Lifting up other projects, one PR at a time.">
+    <meta property="og:description" id="og-description"
+        content="Track your open source contributions across GitHub. ForkLift analyzes your external pull requests, showing open, merged, and discarded PRs in other people's repositories.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" id="og-url" content="https://ankitpandey2708.github.io/opensource/">
+    <meta property="og:site_name" content="ForkLift">
+    <meta property="og:image" id="og-image" content="https://ankitpandey2708.github.io/opensource/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="ForkLift - Track your GitHub open source contributions">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="twitter-title" content="ForkLift | Lifting up other projects, one PR at a time.">
+    <meta name="twitter:description" id="twitter-description"
+        content="Track your open source contributions across GitHub. ForkLift analyzes your external pull requests, showing open, merged, and discarded PRs in other people's repositories.">
+    <meta name="twitter:image" id="twitter-image" content="https://ankitpandey2708.github.io/opensource/og-image.png">
+    <meta name="twitter:image:alt" content="ForkLift - Track your GitHub open source contributions">
+
+    <!-- Additional SEO -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+
+    <!-- Start Single Page Apps for GitHub Pages -->
+    <script>
+        (function (l) {
+            if (l.search[1] === '/') {
+                var decoded = l.search.slice(1).split('&').map(function (s) {
+                    return s.replace(/~and~/g, '&')
+                }).join('?');
+                window.history.replaceState(null, null,
+                    l.pathname.slice(0, -1) + decoded + l.hash
+                );
+            }
+        }(window.location))
+    </script>
+    <!-- End Single Page Apps for GitHub Pages -->
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "ForkLift",
+      "description": "Track your open source contributions across GitHub. ForkLift analyzes your external pull requests, showing open, merged, and discarded PRs in other people's repositories.",
+      "url": "https://ankitpandey2708.github.io/opensource/",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "screenshot": "https://ankitpandey2708.github.io/opensource/og-image.png",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "1.0",
+      "author": {
+        "@type": "Organization",
+        "name": "ForkLift"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "5",
+        "ratingCount": "1"
+      }
+    }
+    </script>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header" role="banner">
+            <h1>ForkLift</h1>
+            <p>Lifting up other projects, one PR at a time.</p>
+            <div class="search-container" role="search">
+                <label for="usernameInput" class="visually-hidden">Enter GitHub username</label>
+                <input type="text" class="search-input" placeholder="Enter GitHub username (e.g., ankitpandey2708)"
+                    id="usernameInput" autofocus aria-label="GitHub username">
+                <button class="search-btn" id="analyzeBtn" aria-label="Analyze GitHub profile">Analyze</button>
+            </div>
+            <div id="tokenIndicator" class="token-indicator" style="display: none;">
+                <span class="token-text">🔑 API Token Active</span>
+                <button class="token-clear-btn" id="clearTokenBtn" title="Clear token"
+                    aria-label="Clear API token">×</button>
+            </div>
+        </header>
+
+        <main class="main-content" role="main">
+            <div id="loadingState" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Analyzing GitHub profile...</p>
+            </div>
+
+            <div id="errorState" class="error" style="display: none;">
+                <div class="error-icon">⚠️</div>
+                <h3 id="errorTitle">Something went wrong</h3>
+                <p id="errorMessage">Please try again</p>
+                <button class="retry-btn" id="retryBtn">Retry</button>
+            </div>
+
+            <div id="dashboardContent" style="display: none;">
+                <div class="user-profile" id="userProfile">
+                    <!-- User profile will be populated here -->
+                </div>
+
+                <div class="insights" id="insights">
+                    <!-- Insights will be populated here -->
+                </div>
+
+
+                <div class="content-section" id="prsSection" style="display: none;">
+
+                    <div class="tabs">
+                        <button class="tab active" data-tab="open" id="openTab">Open (<span
+                                id="openCount">0</span>)</button>
+                        <button class="tab" data-tab="discarded" id="discardedTab">Discarded (<span
+                                id="discardedCount">0</span>)</button>
+                        <button class="tab" data-tab="merged" id="mergedTab">Merged (<span
+                                id="mergedCount">0</span>)</button>
+                    </div>
+                    <div class="tab-content active" id="openContent">
+                        <div class="prs-container" id="openPRsGrid"></div>
+                    </div>
+                    <div class="tab-content" id="discardedContent">
+                        <div class="prs-container" id="discardedPRsGrid"></div>
+                    </div>
+                    <div class="tab-content" id="mergedContent">
+                        <div class="prs-container" id="mergedPRsGrid"></div>
+                    </div>
+                </div>
+
+                <div class="encouragement-section" id="encouragementSection" style="display: none;">
+                    <p class="subtitle" id="encouragementSubtitle">Contributing to open source can be scary, but it's SO
+                        rewarding!</p>
+
+                    <div class="encouragement-content">
+                        <h3>✨ You can do it! Here's how:</h3>
+
+                        <div class="resources-grid">
+                            <div class="resource-card">
+                                <h4>🎁 Good First Issues</h4>
+                                <p>Find beginner-friendly issues from popular open-source projects to tackle.</p>
+                                <a href="https://goodfirstissue.dev/" target="_blank" rel="noopener noreferrer"
+                                    class="resource-link">Find Issues
+                                    →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>🆙 Up For Grabs</h4>
+                                <p>Projects that actively want help, labeled with "up-for-grabs" or "help wanted".</p>
+                                <a href="https://up-for-grabs.net/" target="_blank" rel="noopener noreferrer"
+                                    class="resource-link">Explore
+                                    Projects →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>💊 CodeTriage</h4>
+                                <p>Subscribe to your favorite projects and get a new open issue in your inbox daily.</p>
+                                <a href="https://www.codetriage.com/" target="_blank" rel="noopener noreferrer"
+                                    class="resource-link">Subscribe
+                                    →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>🔍 First PR</h4>
+                                <p>See what other developers' first pull requests looked like. You'll be surprised!</p>
+                                <a href="https://firstpr.me/" target="_blank" rel="noopener noreferrer"
+                                    class="resource-link">Check It Out →</a>
+                            </div>
+
+                            <div class="resource-card">
+                                <h4>📚 Learn More</h4>
+                                <p>Read guides and blog posts on how to contribute to open source projects.</p>
+                                <a href="https://www.firsttimersonly.com/" target="_blank" rel="noopener noreferrer"
+                                    class="resource-link">Read
+                                    Guides →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- GitHub Token Modal -->
+    <div id="tokenModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">🔑 GitHub Token Required</div>
+            <div class="modal-body">
+                <p>GitHub API rate limit reached. Please provide a personal access token to continue.</p>
+                <p><strong>How to create a token:</strong></p>
+                <ol>
+                    <li>Go to <a href="https://github.com/settings/tokens" target="_blank"
+                            rel="noopener noreferrer">GitHub Settings → Tokens</a>
+                    </li>
+                    <li>Generate a new token (classic)</li>
+                    <li>No scopes needed for public data</li>
+                    <li>Copy and paste the token below</li>
+                </ol>
+                <input type="password" id="tokenInput" class="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                <div id="tokenError" class="modal-error" style="display: none;"></div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancelTokenBtn" class="modal-btn modal-btn-secondary">Cancel</button>
+                <button id="submitTokenBtn" class="modal-btn modal-btn-primary">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
