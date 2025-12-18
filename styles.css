@@ -1411,6 +1411,12 @@ body::after {
 /* ========================================
    ORG GROUPING STYLES
    ======================================== */
+.prs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
 .org-group {
     margin-bottom: 50px;
     text-align: left;
