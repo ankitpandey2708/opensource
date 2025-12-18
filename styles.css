@@ -1407,3 +1407,57 @@ body::after {
         transform: translateY(0) scale(1);
     }
 }
+
+/* ========================================
+   ORG GROUPING STYLES
+   ======================================== */
+.org-group {
+    margin-bottom: 50px;
+    text-align: left;
+}
+
+.org-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 25px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-purple);
+    border-left: 5px solid var(--accent-purple);
+    margin-bottom: 25px;
+    font-family: var(--font-display);
+    position: relative;
+    box-shadow: 0 5px 25px rgba(162, 119, 255, 0.1);
+}
+
+.org-header::before {
+    content: '$ ORG_SCOPE';
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: var(--bg-tertiary);
+    padding: 0 10px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--accent-purple);
+    letter-spacing: 1.5px;
+}
+
+.org-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent-purple);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(162, 119, 255, 0.3);
+}
+
+.pr-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: rgba(162, 119, 255, 0.1);
+    padding: 6px 15px;
+    border: 1px solid rgba(162, 119, 255, 0.3);
+}

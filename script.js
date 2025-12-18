@@ -366,21 +366,44 @@ class GitHubDashboard {
             return;
         }
 
-        grid.innerHTML = prs.map(pr => {
-            const repoName = pr.repository_url.split('/').pop();
-            const createdDate = new Date(pr.created_at).toLocaleDateString();
+        // Group PRs by organization
+        const groupedPRs = prs.reduce((groups, pr) => {
+            const orgName = pr.repository_url.split('/').slice(-2)[0];
+            if (!groups[orgName]) groups[orgName] = [];
+            groups[orgName].push(pr);
+            return groups;
+        }, {});
+
+        grid.innerHTML = Object.entries(groupedPRs).map(([orgName, orgPRs]) => {
+            const itemsHTML = orgPRs.map(pr => {
+                const repoName = pr.repository_url.split('/').pop();
+                const createdDate = new Date(pr.created_at).toLocaleDateString();
+                return `
+                    <a href="${pr.html_url}" target="_blank" class="item-card">
+                        <div class="item-title">
+                            ${repoName} #${pr.number}
+                            <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
+                        </div>
+                        <p class="item-description">${pr.title}</p>
+                        <div class="item-meta">
+                            <span class="meta-item">Created ${createdDate}</span>
+                            <span class="meta-item">💬 ${pr.comments || 0} comments</span>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+
             return `
-                <a href="${pr.html_url}" target="_blank" class="item-card">
-                    <div class="item-title">
-                        ${repoName} #${pr.number}
-                        <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
+                <div class="org-group">
+                    <div class="org-header">
+                        <span class="org-icon">🏢</span>
+                        <span class="org-name">${orgName}</span>
+                        <span class="pr-count">${orgPRs.length} ${orgPRs.length === 1 ? 'PR' : 'PRs'}</span>
                     </div>
-                    <p class="item-description">${pr.title}</p>
-                    <div class="item-meta">
-                        <span class="meta-item">Created ${createdDate}</span>
-                        <span class="meta-item">💬 ${pr.comments || 0} comments</span>
+                    <div class="items-grid">
+                        ${itemsHTML}
                     </div>
-                </a>
+                </div>
             `;
         }).join('');
     }
