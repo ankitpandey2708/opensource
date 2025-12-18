@@ -374,7 +374,10 @@ class GitHubDashboard {
             return groups;
         }, {});
 
-        grid.innerHTML = Object.entries(groupedPRs).map(([orgName, orgPRs]) => {
+        // Sort organizations by PR count (descending)
+        grid.innerHTML = Object.entries(groupedPRs)
+            .sort((a, b) => b[1].length - a[1].length)
+            .map(([orgName, orgPRs]) => {
             const itemsHTML = orgPRs.map(pr => {
                 const repoName = pr.repository_url.split('/').pop();
                 const createdDate = new Date(pr.created_at).toLocaleDateString();
