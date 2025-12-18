@@ -235,6 +235,50 @@ class GitHubDashboard {
         this.renderUserProfile();
         this.renderInsights();
         this.renderPRs();
+        this.updateMetaTags();
+    }
+
+    updateMetaTags() {
+        const profile = this.userData.profile;
+        if (!profile) return;
+
+        const username = profile.login;
+        const displayName = profile.name || username;
+        const totalPRs = this.userData.openPRs.length + this.userData.discardedPRs.length + this.userData.mergedPRs.length;
+        const mergedPRs = this.userData.mergedPRs.length;
+
+        // Create dynamic title and description
+        const pageTitle = `@${username} - ${totalPRs} Open Source Contributions | ForkLift`;
+        const pageDescription = `${displayName} has contributed ${totalPRs} pull requests to open source projects on GitHub, with ${mergedPRs} successfully merged. Track your GitHub contributions with ForkLift.`;
+        const pageUrl = `https://ankitpandey2708.github.io/opensource/${username}`;
+        const profileImage = profile.avatar_url || 'https://ankitpandey2708.github.io/opensource/og-image.png';
+
+        // Update document title
+        document.title = pageTitle;
+
+        // Update meta description
+        this.updateMetaTag('meta-description', 'content', pageDescription);
+
+        // Update canonical URL
+        this.updateMetaTag('canonical-url', 'href', pageUrl);
+
+        // Update Open Graph tags
+        this.updateMetaTag('og-title', 'content', pageTitle);
+        this.updateMetaTag('og-description', 'content', pageDescription);
+        this.updateMetaTag('og-url', 'content', pageUrl);
+        this.updateMetaTag('og-image', 'content', profileImage);
+
+        // Update Twitter Card tags
+        this.updateMetaTag('twitter-title', 'content', pageTitle);
+        this.updateMetaTag('twitter-description', 'content', pageDescription);
+        this.updateMetaTag('twitter-image', 'content', profileImage);
+    }
+
+    updateMetaTag(id, attribute, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.setAttribute(attribute, value);
+        }
     }
 
     renderUserProfile() {
