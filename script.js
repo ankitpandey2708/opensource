@@ -374,10 +374,17 @@ class GitHubDashboard {
             return groups;
         }, {});
 
-        // Sort organizations by PR count (descending)
-        grid.innerHTML = Object.entries(groupedPRs)
-            .sort((a, b) => b[1].length - a[1].length)
-            .map(([orgName, orgPRs]) => {
+        // Sort organizations by PR count (descending) and separate
+        const sortedOrgs = Object.entries(groupedPRs)
+            .sort((a, b) => b[1].length - a[1].length);
+
+        const multiPROrgs = sortedOrgs.filter(([_, orgPRs]) => orgPRs.length > 1);
+        const singlePROrgs = sortedOrgs.filter(([_, orgPRs]) => orgPRs.length === 1);
+
+        let htmlContent = '';
+
+        // Render organizations with 2+ PRs (with org headers)
+        htmlContent += multiPROrgs.map(([orgName, orgPRs]) => {
             const itemsHTML = orgPRs.map(pr => {
                 const repoName = pr.repository_url.split('/').pop();
                 const createdDate = new Date(pr.created_at).toLocaleDateString();
@@ -401,7 +408,7 @@ class GitHubDashboard {
                     <div class="org-header">
                         <span class="org-icon">🏢</span>
                         <span class="org-name">${orgName}</span>
-                        <span class="pr-count">${orgPRs.length} ${orgPRs.length === 1 ? 'PR' : 'PRs'}</span>
+                        <span class="pr-count">${orgPRs.length} PRs</span>
                     </div>
                     <div class="items-grid">
                         ${itemsHTML}
@@ -409,6 +416,43 @@ class GitHubDashboard {
                 </div>
             `;
         }).join('');
+
+        // Render "Other Contributions" section for single-PR orgs
+        if (singlePROrgs.length > 0) {
+            const singlePRsHTML = singlePROrgs.map(([orgName, orgPRs]) => {
+                const pr = orgPRs[0];
+                const repoName = pr.repository_url.split('/').pop();
+                const createdDate = new Date(pr.created_at).toLocaleDateString();
+                return `
+                    <a href="${pr.html_url}" target="_blank" class="item-card">
+                        <div class="item-title">
+                            <span class="org-badge">${orgName}</span> / ${repoName} #${pr.number}
+                            <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
+                        </div>
+                        <p class="item-description">${pr.title}</p>
+                        <div class="item-meta">
+                            <span class="meta-item">Created ${createdDate}</span>
+                            <span class="meta-item">💬 ${pr.comments || 0} comments</span>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+
+            htmlContent += `
+                <div class="other-contributions">
+                    <div class="other-contributions-header">
+                        <span class="section-line"></span>
+                        <span class="section-text">Other Contributions</span>
+                        <span class="section-line"></span>
+                    </div>
+                    <div class="items-grid">
+                        ${singlePRsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        grid.innerHTML = htmlContent;
     }
 
     switchTab(tabName) {
