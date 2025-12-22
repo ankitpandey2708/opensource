@@ -849,9 +849,7 @@ class GitHubDashboard {
 
     async fetchWithAuth(url) {
         const response = await fetch(url, {
-            headers: this.getFetchHeaders(),
-            // Allow browser to use cached responses
-            cache: 'default'
+            headers: this.getFetchHeaders()
         });
 
         if ((response.status === 401 || response.status === 403)) {
@@ -865,8 +863,7 @@ class GitHubDashboard {
                 this.pendingRequest = async () => {
                     try {
                         const retryResponse = await fetch(url, {
-                            headers: this.getFetchHeaders(),
-                            cache: 'default'
+                            headers: this.getFetchHeaders()
                         });
 
                         if (retryResponse.ok) {
