@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Card Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background: #0d1117;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #161b22;
+            border-radius: 8px;
+        }
+        .test-section h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #58a6ff;
+        }
+        img {
+            display: block;
+            margin: 10px 0;
+            border: 2px solid #30363d;
+            border-radius: 6px;
+        }
+        code {
+            background: #0d1117;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #79c0ff;
+        }
+        .info {
+            font-size: 14px;
+            color: #8b949e;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ForkLift SVG Card Test</h1>
+
+        <div class="test-section">
+            <h2>1. Direct IMG Tag (As will be used in embeds)</h2>
+            <img src="insights-card.svg" alt="ForkLift Stats" />
+            <div class="info">
+                ✅ This is how users will embed it:<br>
+                <code>&lt;img src="https://ankitpandey2708.github.io/opensource/insights-card.svg" alt="ForkLift Stats" /&gt;</code>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Centered with alignment (README style)</h2>
+            <img align="center" src="insights-card.svg" alt="ForkLift Stats" />
+            <div class="info">
+                ✅ With <code>align="center"</code> attribute
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Inline SVG (Direct inclusion)</h2>
+            <div id="inline-svg"></div>
+            <div class="info">
+                ✅ SVG code directly embedded in HTML
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Card Details</h2>
+            <ul style="font-size: 14px; color: #c9d1d9;">
+                <li><strong>Dimensions:</strong> 450 × 195 px</li>
+                <li><strong>Format:</strong> SVG (Scalable Vector Graphics)</li>
+                <li><strong>MIME Type:</strong> image/svg+xml; charset=utf-8</li>
+                <li><strong>Auto-updates:</strong> Every 6 hours via GitHub Actions</li>
+                <li><strong>Stats shown:</strong> Total contributions, Merge rate, PR breakdown</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Load and display inline SVG
+        fetch('insights-card.svg')
+            .then(response => response.text())
+            .then(svgContent => {
+                document.getElementById('inline-svg').innerHTML = svgContent;
+            })
+            .catch(error => console.error('Error loading SVG:', error));
+    </script>
+</body>
+</html>
