@@ -316,8 +316,15 @@ class GitHubDashboard {
 
         const username = profile.login;
         const displayName = profile.name || username;
-        const totalPRs = this.userData.openPRs.length + this.userData.discardedPRs.length + this.userData.mergedPRs.length;
-        const mergedPRs = this.userData.mergedPRs.length;
+
+        // Use actual total counts from API, not just loaded data
+        const getTotalCount = (prType) => {
+            const state = this.paginationState[prType];
+            return state.totalCount > 0 ? state.totalCount : this.userData[prType].length;
+        };
+
+        const totalPRs = getTotalCount('openPRs') + getTotalCount('discardedPRs') + getTotalCount('mergedPRs');
+        const mergedPRs = getTotalCount('mergedPRs');
 
         // Create dynamic title and description
         const pageTitle = `@${username} - ${totalPRs} Open Source Contributions | ForkLift`;
@@ -382,8 +389,18 @@ class GitHubDashboard {
 
 
     renderInsights() {
-        const totalPRs = this.userData.openPRs.length + this.userData.discardedPRs.length + this.userData.mergedPRs.length;
-        const mergeRate = totalPRs > 0 ? ((this.userData.mergedPRs.length / totalPRs) * 100).toFixed(1) : 0;
+        // Use actual total counts from API, not just loaded data
+        const getTotalCount = (prType) => {
+            const state = this.paginationState[prType];
+            return state.totalCount > 0 ? state.totalCount : this.userData[prType].length;
+        };
+
+        const openTotal = getTotalCount('openPRs');
+        const discardedTotal = getTotalCount('discardedPRs');
+        const mergedTotal = getTotalCount('mergedPRs');
+        const totalPRs = openTotal + discardedTotal + mergedTotal;
+
+        const mergeRate = totalPRs > 0 ? ((mergedTotal / totalPRs) * 100).toFixed(1) : 0;
         const repoCount = this.userData.repos.length;
 
         // Toggle section visibility
@@ -619,7 +636,7 @@ class GitHubDashboard {
                 <button class="load-more-btn" data-pr-type="${prType}" ${paginationState.loading ? 'disabled' : ''}>
                     ${paginationState.loading ?
                         '<span class="loading-spinner"></span> Loading...' :
-                        `Load More (${this.userData[prType].length}/${paginationState.totalCount})`
+                        'Load More'
                     }
                 </button>
             `;
