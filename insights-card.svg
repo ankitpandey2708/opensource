@@ -1,6 +1,6 @@
 <svg width="450" height="195" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="descId">
   <title id="titleId">ForkLift Insights for ankitpandey2708</title>
-  <desc id="descId">17 contributions with 70.6% merge rate</desc>
+  <desc id="descId">Open source contribution statistics showing 32 total contributions with 40.6% merge rate</desc>
 
   <defs>
     <!-- Animated Background Gradient -->
@@ -130,54 +130,50 @@
             font-weight="700" letter-spacing="1">
         TOTAL CONTRIBUTIONS
       </text>
-      <text x="0" y="28" font-family="'Inter', sans-serif" font-size="42" font-weight="900"
-            fill="url(#cyanGlow)" filter="url(#neonGlow)">
-        17
+
+      <!-- Value -->
+      <text x="45" y="45" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            font-size="32" font-weight="800" fill="#6366f1" filter="url(#glow)">
+        32
+      </text>
+
+      <!-- Sub Stats -->
+      <text x="45" y="65" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            font-size="9" fill="#64748b" font-weight="500">
+        <tspan fill="#10b981">●</tspan> 13 merged
+        <tspan dx="3" fill="#f59e0b">●</tspan> 4 open
       </text>
     </g>
 
-    <!-- PR Breakdown Bars -->
-    <g transform="translate(0, 50)">
-      <text x="0" y="0" font-family="'Inter', sans-serif" font-size="9" fill="#64748b"
-            font-weight="700" letter-spacing="0.5">
-        PR BREAKDOWN
+    <!-- Merge Rate Card -->
+    <g transform="translate(210, 0)" filter="url(#shadow)">
+      <rect width="190" height="85" rx="10" fill="#1e293b"/>
+      <rect width="190" height="85" rx="10" fill="url(#cardGradient2)"/>
+      <rect x="1" y="1" width="188" height="83" rx="9" fill="none" stroke="#10b981" stroke-width="1" opacity="0.3"/>
+
+      <!-- Icon Background -->
+      <circle cx="25" cy="25" r="12" fill="#10b981" opacity="0.2"/>
+
+      <!-- Target Icon -->
+      <text x="25" y="31" font-size="14" text-anchor="middle">🎯</text>
+
+      <!-- Label -->
+      <text x="45" y="22" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            font-size="11" fill="#94a3b8" font-weight="600" letter-spacing="0.5">
+        MERGE RATE
       </text>
 
-      <!-- Merged Bar -->
-      <g transform="translate(0, 12)">
-        <rect x="0" y="0" width="140" height="12" rx="6" fill="#1e293b"/>
-        <rect x="0" y="0" width="98.82352941176471" height="12" rx="6" fill="url(#emeraldGlow)" filter="url(#softGlow)">
-          <animate attributeName="width" from="0" to="98.82352941176471" dur="1s" fill="freeze"/>
-        </rect>
-        <text x="148" y="9" font-family="'Inter', sans-serif" font-size="10"
-              fill="#10b981" font-weight="700">
-          12 Merged
-        </text>
-      </g>
+      <!-- Value -->
+      <text x="45" y="45" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            font-size="32" font-weight="800" fill="#10b981" filter="url(#glow)">
+        40.6%
+      </text>
 
-      <!-- Open Bar -->
-      <g transform="translate(0, 28)">
-        <rect x="0" y="0" width="140" height="12" rx="6" fill="#1e293b"/>
-        <rect x="0" y="0" width="16.470588235294116" height="12" rx="6" fill="url(#yellowGlow)" filter="url(#softGlow)">
-          <animate attributeName="width" from="0" to="16.470588235294116" dur="1s" fill="freeze" begin="0.2s"/>
-        </rect>
-        <text x="148" y="9" font-family="'Inter', sans-serif" font-size="10"
-              fill="#fbbf24" font-weight="700">
-          2 Open
-        </text>
-      </g>
-
-      <!-- Discarded Bar -->
-      <g transform="translate(0, 44)">
-        <rect x="0" y="0" width="140" height="12" rx="6" fill="#1e293b"/>
-        <rect x="0" y="0" width="24.70588235294118" height="12" rx="6" fill="url(#pinkGlow)" filter="url(#softGlow)">
-          <animate attributeName="width" from="0" to="24.70588235294118" dur="1s" fill="freeze" begin="0.4s"/>
-        </rect>
-        <text x="148" y="9" font-family="'Inter', sans-serif" font-size="10"
-              fill="#ec4899" font-weight="700">
-          3 Closed
-        </text>
-      </g>
+      <!-- Sub Stats -->
+      <text x="45" y="65" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+            font-size="9" fill="#64748b" font-weight="500">
+        <tspan fill="#ef4444">●</tspan> 15 discarded
+      </text>
     </g>
   </g>
 
