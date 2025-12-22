@@ -1,6 +1,6 @@
 <svg width="450" height="195" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="descId">
   <title id="titleId">ForkLift Insights for ankitpandey2708</title>
-  <desc id="descId">Open source contribution statistics showing total contributions with merge rate</desc>
+  <desc id="descId">Open source contribution statistics showing 32 total contributions with 40.6% merge rate</desc>
 
   <defs>
     <!-- Gradient Definitions -->
@@ -105,14 +105,14 @@
       <!-- Value -->
       <text x="45" y="45" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
             font-size="32" font-weight="800" fill="#6366f1" filter="url(#glow)">
-        17
+        32
       </text>
 
       <!-- Sub Stats -->
       <text x="45" y="65" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
             font-size="9" fill="#64748b" font-weight="500">
-        <tspan fill="#10b981">●</tspan> 12 merged
-        <tspan dx="3" fill="#f59e0b">●</tspan> 2 open
+        <tspan fill="#10b981">●</tspan> 13 merged
+        <tspan dx="3" fill="#f59e0b">●</tspan> 4 open
       </text>
     </g>
 
@@ -137,13 +137,13 @@
       <!-- Value -->
       <text x="45" y="45" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
             font-size="32" font-weight="800" fill="#10b981" filter="url(#glow)">
-        70.6%
+        40.6%
       </text>
 
       <!-- Sub Stats -->
       <text x="45" y="65" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
             font-size="9" fill="#64748b" font-weight="500">
-        <tspan fill="#ef4444">●</tspan> 3 discarded
+        <tspan fill="#ef4444">●</tspan> 15 discarded
       </text>
     </g>
   </g>
