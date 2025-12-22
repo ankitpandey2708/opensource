@@ -87,6 +87,20 @@ class GitHubDashboard {
             merged: { emoji: '🟢', label: 'merged', query: 'state:closed+is:merged' }
         };
 
+        // Grid mapping constants
+        this.PR_GRID_MAP = {
+            'openPRs': 'openPRsGrid',
+            'discardedPRs': 'discardedPRsGrid',
+            'mergedPRs': 'mergedPRsGrid'
+        };
+
+        // PR type to state mapping
+        this.PR_TYPE_TO_STATE = {
+            'openPRs': 'open',
+            'discardedPRs': 'discarded',
+            'mergedPRs': 'merged'
+        };
+
         // Virtualization settings
         this.ITEMS_PER_PAGE = 100;
         this.RENDER_BUFFER = 20; // Number of items to render beyond viewport
@@ -141,6 +155,25 @@ class GitHubDashboard {
             discardedPRs: cachedData.discardedPRs || [],
             mergedPRs: cachedData.mergedPRs || []
         };
+    }
+
+    // URL parsing helper methods
+    extractOrgName(url) {
+        return url.split('/')[3]; // Extract org from https://github.com/org/repo/pull/123
+    }
+
+    extractRepoName(url) {
+        return url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
+    }
+
+    extractPRNumber(url) {
+        return url.split('/').pop(); // Extract PR number from URL
+    }
+
+    // Get total count for a PR type (from API or loaded data)
+    getTotalCount(prType) {
+        const state = this.paginationState[prType];
+        return state.totalCount > 0 ? state.totalCount : this.userData[prType].length;
     }
 
     loadToken() {
@@ -407,13 +440,7 @@ class GitHubDashboard {
             this.loadMoreDebounce[prType] = false;
         }, 300); // 300ms debounce
 
-        const stateMap = {
-            'openPRs': 'open',
-            'discardedPRs': 'discarded',
-            'mergedPRs': 'merged'
-        };
-
-        await this.fetchPRPage(this.currentUser, prType, stateMap[prType]);
+        await this.fetchPRPage(this.currentUser, prType, this.PR_TYPE_TO_STATE[prType]);
 
         // Update cache with new data (sanitized to reduce size)
         const cacheKey = `gh_cache_${this.currentUser}`;
@@ -457,13 +484,8 @@ class GitHubDashboard {
         const displayName = profile.name || username;
 
         // Use actual total counts from API, not just loaded data
-        const getTotalCount = (prType) => {
-            const state = this.paginationState[prType];
-            return state.totalCount > 0 ? state.totalCount : this.userData[prType].length;
-        };
-
-        const totalPRs = getTotalCount('openPRs') + getTotalCount('discardedPRs') + getTotalCount('mergedPRs');
-        const mergedPRs = getTotalCount('mergedPRs');
+        const totalPRs = this.getTotalCount('openPRs') + this.getTotalCount('discardedPRs') + this.getTotalCount('mergedPRs');
+        const mergedPRs = this.getTotalCount('mergedPRs');
 
         // Create dynamic title and description
         const pageTitle = `@${username} - ${totalPRs} Open Source Contributions | ForkLift`;
@@ -529,14 +551,9 @@ class GitHubDashboard {
 
     renderInsights() {
         // Use actual total counts from API, not just loaded data
-        const getTotalCount = (prType) => {
-            const state = this.paginationState[prType];
-            return state.totalCount > 0 ? state.totalCount : this.userData[prType].length;
-        };
-
-        const openTotal = getTotalCount('openPRs');
-        const discardedTotal = getTotalCount('discardedPRs');
-        const mergedTotal = getTotalCount('mergedPRs');
+        const openTotal = this.getTotalCount('openPRs');
+        const discardedTotal = this.getTotalCount('discardedPRs');
+        const mergedTotal = this.getTotalCount('mergedPRs');
         const totalPRs = openTotal + discardedTotal + mergedTotal;
 
         const mergeRate = totalPRs > 0 ? ((mergedTotal / totalPRs) * 100).toFixed(1) : 0;
@@ -638,18 +655,32 @@ class GitHubDashboard {
     }
 
     renderPRGridProgressive(prType, state) {
-        const gridMap = {
-            'openPRs': 'openPRsGrid',
-            'discardedPRs': 'discardedPRsGrid',
-            'mergedPRs': 'mergedPRsGrid'
-        };
-
-        const gridId = gridMap[prType];
+        const gridId = this.PR_GRID_MAP[prType];
         const prs = this.userData[prType];
 
         // Full re-render with updated data
         this.renderPRGrid(gridId, prs, state);
         this.addLoadMoreButton(gridId, prType);
+    }
+
+    // Helper method to render a single PR card
+    renderPRCard(pr, state) {
+        const repoName = this.extractRepoName(pr.html_url);
+        const prNumber = this.extractPRNumber(pr.html_url);
+        const createdDate = new Date(pr.created_at).toLocaleDateString();
+
+        return `
+            <a href="${pr.html_url}" target="_blank" class="item-card">
+                <div class="item-title">
+                    ${repoName} #${prNumber}
+                    <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
+                </div>
+                <p class="item-description">${pr.title}</p>
+                <div class="item-meta">
+                    <span class="meta-item">Created ${createdDate}</span>
+                </div>
+            </a>
+        `;
     }
 
     renderPRGrid(gridId, prs, state) {
@@ -669,7 +700,7 @@ class GitHubDashboard {
 
         // Group PRs by organization
         const groupedPRs = prs.reduce((groups, pr) => {
-            const orgName = pr.html_url.split('/')[3]; // Extract org from https://github.com/org/repo/pull/123
+            const orgName = this.extractOrgName(pr.html_url);
             if (!groups[orgName]) groups[orgName] = [];
             groups[orgName].push(pr);
             return groups;
@@ -686,23 +717,7 @@ class GitHubDashboard {
 
         // Render organizations with 2+ PRs (with org headers)
         htmlContent += multiPROrgs.map(([orgName, orgPRs]) => {
-            const itemsHTML = orgPRs.map(pr => {
-                const repoName = pr.html_url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
-                const prNumber = pr.html_url.split('/').pop(); // Extract PR number from URL
-                const createdDate = new Date(pr.created_at).toLocaleDateString();
-                return `
-                    <a href="${pr.html_url}" target="_blank" class="item-card">
-                        <div class="item-title">
-                            ${repoName} #${prNumber}
-                            <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
-                        </div>
-                        <p class="item-description">${pr.title}</p>
-                        <div class="item-meta">
-                            <span class="meta-item">Created ${createdDate}</span>
-                        </div>
-                    </a>
-                `;
-            }).join('');
+            const itemsHTML = orgPRs.map(pr => this.renderPRCard(pr, state)).join('');
 
             return `
                 <div class="org-group">
@@ -722,21 +737,7 @@ class GitHubDashboard {
         if (singlePROrgs.length > 0) {
             const singlePRsHTML = singlePROrgs.map(([orgName, orgPRs]) => {
                 const pr = orgPRs[0];
-                const repoName = pr.html_url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
-                const prNumber = pr.html_url.split('/').pop(); // Extract PR number from URL
-                const createdDate = new Date(pr.created_at).toLocaleDateString();
-                return `
-                    <a href="${pr.html_url}" target="_blank" class="item-card">
-                        <div class="item-title">
-                            ${repoName} #${prNumber}
-                            <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
-                        </div>
-                        <p class="item-description">${pr.title}</p>
-                        <div class="item-meta">
-                            <span class="meta-item">Created ${createdDate}</span>
-                        </div>
-                    </a>
-                `;
+                return this.renderPRCard(pr, state);
             }).join('');
 
             htmlContent += `
@@ -788,13 +789,7 @@ class GitHubDashboard {
     }
 
     updateLoadMoreButton(prType) {
-        const gridMap = {
-            'openPRs': 'openPRsGrid',
-            'discardedPRs': 'discardedPRsGrid',
-            'mergedPRs': 'mergedPRsGrid'
-        };
-
-        const gridId = gridMap[prType];
+        const gridId = this.PR_GRID_MAP[prType];
         this.addLoadMoreButton(gridId, prType);
     }
 
