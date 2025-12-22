@@ -12,12 +12,23 @@ class GitHubDashboard {
             mergedPRs: []
         };
 
+        // Pagination state for each PR type
+        this.paginationState = {
+            openPRs: { page: 1, hasMore: true, loading: false, totalCount: 0 },
+            discardedPRs: { page: 1, hasMore: true, loading: false, totalCount: 0 },
+            mergedPRs: { page: 1, hasMore: true, loading: false, totalCount: 0 }
+        };
+
         // Constants for PR states
         this.PR_STATES = {
             open: { emoji: '🟡', label: 'open', query: 'state:open' },
             discarded: { emoji: '🔴', label: 'discarded', query: 'state:closed+-is:merged' },
             merged: { emoji: '🟢', label: 'merged', query: 'state:closed+is:merged' }
         };
+
+        // Virtualization settings
+        this.ITEMS_PER_PAGE = 100;
+        this.RENDER_BUFFER = 20; // Number of items to render beyond viewport
 
         this.initializeEventListeners();
         this.updateTokenIndicator();
@@ -192,23 +203,84 @@ class GitHubDashboard {
     }
 
     async fetchPRs(username) {
+        // Reset pagination state and data for initial load
+        this.resetPaginationState();
+        this.userData.openPRs = [];
+        this.userData.discardedPRs = [];
+        this.userData.mergedPRs = [];
+
         const baseURL = 'https://api.github.com/search/issues';
         const prTypes = ['openPRs', 'discardedPRs', 'mergedPRs'];
         const states = Object.keys(this.PR_STATES);
 
+        // Fetch first page for all PR types in parallel
         await Promise.all(states.map(async (state, index) => {
-            try {
-                const query = `author:${username}+-owner:${username}+type:pr+${this.PR_STATES[state].query}`;
-                const response = await this.fetchWithAuth(`${baseURL}?q=${query}&per_page=100`);
-                if (response.ok) {
-                    const data = await response.json();
-                    this.userData[prTypes[index]] = data.items || [];
-                }
-            } catch (e) {
-                console.warn(`Failed to fetch ${state} PRs:`, e);
-                this.userData[prTypes[index]] = [];
-            }
+            await this.fetchPRPage(username, prTypes[index], state, baseURL);
         }));
+    }
+
+    async fetchPRPage(username, prType, state, baseURL = 'https://api.github.com/search/issues') {
+        const paginationState = this.paginationState[prType];
+
+        // Don't fetch if already loading or no more results
+        if (paginationState.loading || !paginationState.hasMore) {
+            return;
+        }
+
+        paginationState.loading = true;
+        this.updateLoadMoreButton(prType);
+
+        try {
+            const query = `author:${username}+-owner:${username}+type:pr+${this.PR_STATES[state].query}`;
+            const url = `${baseURL}?q=${query}&per_page=${this.ITEMS_PER_PAGE}&page=${paginationState.page}`;
+            const response = await this.fetchWithAuth(url);
+
+            if (response.ok) {
+                const data = await response.json();
+                const newItems = data.items || [];
+
+                // Update total count
+                paginationState.totalCount = data.total_count || 0;
+
+                // Append new items to existing data
+                this.userData[prType] = [...this.userData[prType], ...newItems];
+
+                // Check if there are more pages
+                // GitHub Search API caps at 1000 results (10 pages)
+                const hasMorePages = newItems.length === this.ITEMS_PER_PAGE &&
+                                    paginationState.page < 10 &&
+                                    this.userData[prType].length < paginationState.totalCount;
+
+                paginationState.hasMore = hasMorePages;
+                paginationState.page++;
+
+                // Progressively render the new items
+                this.renderPRGridProgressive(prType, state);
+                this.updateTabCounts();
+                this.renderInsights();
+            }
+        } catch (e) {
+            console.warn(`Failed to fetch ${state} PRs page ${paginationState.page}:`, e);
+        } finally {
+            paginationState.loading = false;
+            this.updateLoadMoreButton(prType);
+        }
+    }
+
+    resetPaginationState() {
+        Object.keys(this.paginationState).forEach(key => {
+            this.paginationState[key] = { page: 1, hasMore: true, loading: false, totalCount: 0 };
+        });
+    }
+
+    async loadMorePRs(prType) {
+        const stateMap = {
+            'openPRs': 'open',
+            'discardedPRs': 'discarded',
+            'mergedPRs': 'merged'
+        };
+
+        await this.fetchPRPage(this.currentUser, prType, stateMap[prType]);
     }
 
     setState(state) {
@@ -380,19 +452,49 @@ class GitHubDashboard {
         }
     }
 
+    updateTabCounts() {
+        const getCountText = (prType) => {
+            const count = this.userData[prType].length;
+            const state = this.paginationState[prType];
+            if (state.totalCount > count) {
+                return `${count}/${state.totalCount}`;
+            }
+            return count;
+        };
+
+        document.getElementById('openCount').textContent = getCountText('openPRs');
+        document.getElementById('discardedCount').textContent = getCountText('discardedPRs');
+        document.getElementById('mergedCount').textContent = getCountText('mergedPRs');
+    }
+
     renderPRs() {
         const prGrids = [
-            { gridId: 'openPRsGrid', prs: this.userData.openPRs, state: 'open' },
-            { gridId: 'discardedPRsGrid', prs: this.userData.discardedPRs, state: 'discarded' },
-            { gridId: 'mergedPRsGrid', prs: this.userData.mergedPRs, state: 'merged' }
+            { gridId: 'openPRsGrid', prs: this.userData.openPRs, state: 'open', prType: 'openPRs' },
+            { gridId: 'discardedPRsGrid', prs: this.userData.discardedPRs, state: 'discarded', prType: 'discardedPRs' },
+            { gridId: 'mergedPRsGrid', prs: this.userData.mergedPRs, state: 'merged', prType: 'mergedPRs' }
         ];
 
-        prGrids.forEach(({ gridId, prs, state }) => this.renderPRGrid(gridId, prs, state));
+        prGrids.forEach(({ gridId, prs, state, prType }) => {
+            this.renderPRGrid(gridId, prs, state);
+            this.addLoadMoreButton(gridId, prType);
+        });
 
-        // Update tab counts
-        document.getElementById('openCount').textContent = this.userData.openPRs.length;
-        document.getElementById('discardedCount').textContent = this.userData.discardedPRs.length;
-        document.getElementById('mergedCount').textContent = this.userData.mergedPRs.length;
+        this.updateTabCounts();
+    }
+
+    renderPRGridProgressive(prType, state) {
+        const gridMap = {
+            'openPRs': 'openPRsGrid',
+            'discardedPRs': 'discardedPRsGrid',
+            'mergedPRs': 'mergedPRsGrid'
+        };
+
+        const gridId = gridMap[prType];
+        const prs = this.userData[prType];
+
+        // Full re-render with updated data
+        this.renderPRGrid(gridId, prs, state);
+        this.addLoadMoreButton(gridId, prType);
     }
 
     renderPRGrid(gridId, prs, state) {
@@ -497,6 +599,48 @@ class GitHubDashboard {
         }
 
         grid.innerHTML = htmlContent;
+    }
+
+    addLoadMoreButton(gridId, prType) {
+        const grid = document.getElementById(gridId);
+        const paginationState = this.paginationState[prType];
+
+        // Remove existing button if present
+        const existingButton = grid.querySelector('.load-more-container');
+        if (existingButton) {
+            existingButton.remove();
+        }
+
+        // Only add button if there are more items to load
+        if (paginationState.hasMore || paginationState.loading) {
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'load-more-container';
+            buttonContainer.innerHTML = `
+                <button class="load-more-btn" data-pr-type="${prType}" ${paginationState.loading ? 'disabled' : ''}>
+                    ${paginationState.loading ?
+                        '<span class="loading-spinner"></span> Loading...' :
+                        `Load More (${this.userData[prType].length}/${paginationState.totalCount})`
+                    }
+                </button>
+            `;
+
+            grid.appendChild(buttonContainer);
+
+            // Add click handler
+            const button = buttonContainer.querySelector('.load-more-btn');
+            button.addEventListener('click', () => this.loadMorePRs(prType));
+        }
+    }
+
+    updateLoadMoreButton(prType) {
+        const gridMap = {
+            'openPRs': 'openPRsGrid',
+            'discardedPRs': 'discardedPRsGrid',
+            'mergedPRs': 'mergedPRsGrid'
+        };
+
+        const gridId = gridMap[prType];
+        this.addLoadMoreButton(gridId, prType);
     }
 
     switchTab(tabName) {
