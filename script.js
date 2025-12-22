@@ -127,8 +127,7 @@ class GitHubDashboard {
             created_at: pr.created_at,
             html_url: pr.html_url,
             number: pr.number,
-            title: pr.title,
-            comments: pr.comments
+            title: pr.title
         });
 
         sanitized.openPRs = userData.openPRs?.map(sanitizePR) || [];
@@ -302,7 +301,6 @@ class GitHubDashboard {
         if (cachedData) {
             console.log('Loading from cache for user:', username);
             this.restoreFromCache(cachedData.userData);
-            this.paginationState = cachedData.paginationState;
             return; // Skip API calls!
         }
 
@@ -328,8 +326,7 @@ class GitHubDashboard {
 
         // Cache the complete data after fetching (sanitized to reduce size)
         this.cache.set(cacheKey, {
-            userData: this.sanitizeDataForCache(this.userData),
-            paginationState: this.paginationState
+            userData: this.sanitizeDataForCache(this.userData)
         });
     }
 
@@ -426,8 +423,7 @@ class GitHubDashboard {
         // Update cache with new data (sanitized to reduce size)
         const cacheKey = `gh_cache_${this.currentUser}`;
         this.cache.set(cacheKey, {
-            userData: this.sanitizeDataForCache(this.userData),
-            paginationState: this.paginationState
+            userData: this.sanitizeDataForCache(this.userData)
         });
     }
 
@@ -708,7 +704,6 @@ class GitHubDashboard {
                         <p class="item-description">${pr.title}</p>
                         <div class="item-meta">
                             <span class="meta-item">Created ${createdDate}</span>
-                            <span class="meta-item">💬 ${pr.comments || 0} comments</span>
                         </div>
                     </a>
                 `;
@@ -743,7 +738,6 @@ class GitHubDashboard {
                         <p class="item-description">${pr.title}</p>
                         <div class="item-meta">
                             <span class="meta-item">Created ${createdDate}</span>
-                            <span class="meta-item">💬 ${pr.comments || 0} comments</span>
                         </div>
                     </a>
                 `;
