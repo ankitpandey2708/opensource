@@ -1,3 +1,18 @@
+# ForkLift
+
+Track your open source contributions across GitHub.
+
+## 📊 Embed Your Stats
+
+Show off your contributions with a beautiful SVG card:
+
+```html
+<img align="center" src="https://ankitpandey2708.github.io/opensource/insights-card.svg" alt="ForkLift Stats" />
+```
+
+![ForkLift Stats](https://ankitpandey2708.github.io/opensource/insights-card.svg)
+
+The card auto-updates every 6 hours via GitHub Actions.
 
 ## Test Scenarios & Usernames
 
