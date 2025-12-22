@@ -636,7 +636,7 @@ class GitHubDashboard {
                 <button class="load-more-btn" data-pr-type="${prType}" ${paginationState.loading ? 'disabled' : ''}>
                     ${paginationState.loading ?
                         '<span class="loading-spinner"></span> Loading...' :
-                        `Load More (${this.userData[prType].length}/${paginationState.totalCount})`
+                        'Load More'
                     }
                 </button>
             `;
