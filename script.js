@@ -126,7 +126,6 @@ class GitHubDashboard {
         const sanitizePR = (pr) => ({
             created_at: pr.created_at,
             html_url: pr.html_url,
-            number: pr.number,
             title: pr.title
         });
 
@@ -694,11 +693,12 @@ class GitHubDashboard {
         htmlContent += multiPROrgs.map(([orgName, orgPRs]) => {
             const itemsHTML = orgPRs.map(pr => {
                 const repoName = pr.html_url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
+                const prNumber = pr.html_url.split('/').pop(); // Extract PR number from URL
                 const createdDate = new Date(pr.created_at).toLocaleDateString();
                 return `
                     <a href="${pr.html_url}" target="_blank" class="item-card">
                         <div class="item-title">
-                            ${repoName} #${pr.number}
+                            ${repoName} #${prNumber}
                             <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
                         </div>
                         <p class="item-description">${pr.title}</p>
@@ -728,11 +728,12 @@ class GitHubDashboard {
             const singlePRsHTML = singlePROrgs.map(([orgName, orgPRs]) => {
                 const pr = orgPRs[0];
                 const repoName = pr.html_url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
+                const prNumber = pr.html_url.split('/').pop(); // Extract PR number from URL
                 const createdDate = new Date(pr.created_at).toLocaleDateString();
                 return `
                     <a href="${pr.html_url}" target="_blank" class="item-card">
                         <div class="item-title">
-                            ${repoName} #${pr.number}
+                            ${repoName} #${prNumber}
                             <span class="pr-state ${state}">${state.charAt(0).toUpperCase() + state.slice(1)}</span>
                         </div>
                         <p class="item-description">${pr.title}</p>
