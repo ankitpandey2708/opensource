@@ -836,9 +836,7 @@ class GitHubDashboard {
 
     getFetchHeaders() {
         const headers = {
-            'Accept': 'application/vnd.github.v3+json',
-            // Cache-Control: allow browser to cache for 5 minutes
-            'Cache-Control': 'max-age=300'
+            'Accept': 'application/vnd.github.v3+json'
         };
 
         if (this.githubToken) {
