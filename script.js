@@ -1,9 +1,70 @@
+// Cache Manager for localStorage with TTL
+class CacheManager {
+    constructor(ttlMinutes = 60) {
+        this.ttl = ttlMinutes * 60 * 1000; // Convert to milliseconds
+    }
+
+    set(key, data) {
+        try {
+            localStorage.setItem(key, JSON.stringify({
+                data,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.warn('Failed to cache data:', e);
+        }
+    }
+
+    get(key) {
+        try {
+            const cached = localStorage.getItem(key);
+            if (!cached) return null;
+
+            const { data, timestamp } = JSON.parse(cached);
+
+            // Check if cache is expired
+            if (Date.now() - timestamp > this.ttl) {
+                localStorage.removeItem(key);
+                return null;
+            }
+
+            return data;
+        } catch (e) {
+            console.warn('Failed to retrieve cached data:', e);
+            return null;
+        }
+    }
+
+    clear(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {
+            console.warn('Failed to clear cache:', e);
+        }
+    }
+
+    clearAll() {
+        try {
+            // Clear all cache entries (those starting with 'gh_cache_')
+            Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('gh_cache_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+        } catch (e) {
+            console.warn('Failed to clear all cache:', e);
+        }
+    }
+}
+
 class GitHubDashboard {
     constructor() {
         this.currentUser = null;
         this.githubToken = this.loadToken();
         this.pendingRequest = null;
         this.isLoadingFromURL = false;
+        this.cache = new CacheManager(60); // 60 minute TTL
+        this.loadMoreDebounce = {}; // Debounce tracking for each PR type
         this.userData = {
             profile: null,
             repos: [],
@@ -182,6 +243,18 @@ class GitHubDashboard {
     }
 
     async fetchAllData(username) {
+        const cacheKey = `gh_cache_${username}`;
+
+        // Try to get cached data
+        const cachedData = this.cache.get(cacheKey);
+        if (cachedData) {
+            console.log('Loading from cache for user:', username);
+            this.userData = cachedData.userData;
+            this.paginationState = cachedData.paginationState;
+            return; // Skip API calls!
+        }
+
+        console.log('Fetching fresh data for user:', username);
         const baseURL = 'https://api.github.com';
 
         // Fetch user profile
@@ -200,6 +273,12 @@ class GitHubDashboard {
 
         // Fetch PRs (using search API)
         await this.fetchPRs(username);
+
+        // Cache the complete data after fetching
+        this.cache.set(cacheKey, {
+            userData: this.userData,
+            paginationState: this.paginationState
+        });
     }
 
     async fetchPRs(username) {
@@ -274,6 +353,16 @@ class GitHubDashboard {
     }
 
     async loadMorePRs(prType) {
+        // Debounce: prevent rapid clicking
+        if (this.loadMoreDebounce[prType]) {
+            return;
+        }
+
+        this.loadMoreDebounce[prType] = true;
+        setTimeout(() => {
+            this.loadMoreDebounce[prType] = false;
+        }, 300); // 300ms debounce
+
         const stateMap = {
             'openPRs': 'open',
             'discardedPRs': 'discarded',
@@ -281,6 +370,13 @@ class GitHubDashboard {
         };
 
         await this.fetchPRPage(this.currentUser, prType, stateMap[prType]);
+
+        // Update cache with new data
+        const cacheKey = `gh_cache_${this.currentUser}`;
+        this.cache.set(cacheKey, {
+            userData: this.userData,
+            paginationState: this.paginationState
+        });
     }
 
     setState(state) {
@@ -721,6 +817,9 @@ class GitHubDashboard {
         this.updateTokenIndicator();
         errorContainer.style.display = 'none';
 
+        // Clear cache when token changes since data might be different
+        this.cache.clearAll();
+
         // Retry the pending request
         if (this.pendingRequest) {
             this.pendingRequest();
@@ -731,11 +830,15 @@ class GitHubDashboard {
         this.githubToken = null;
         this.saveToken(null);
         this.updateTokenIndicator();
+        // Clear cache when token changes since data might be different
+        this.cache.clearAll();
     }
 
     getFetchHeaders() {
         const headers = {
-            'Accept': 'application/vnd.github.v3+json'
+            'Accept': 'application/vnd.github.v3+json',
+            // Cache-Control: allow browser to cache for 5 minutes
+            'Cache-Control': 'max-age=300'
         };
 
         if (this.githubToken) {
@@ -748,7 +851,9 @@ class GitHubDashboard {
 
     async fetchWithAuth(url) {
         const response = await fetch(url, {
-            headers: this.getFetchHeaders()
+            headers: this.getFetchHeaders(),
+            // Allow browser to use cached responses
+            cache: 'default'
         });
 
         if ((response.status === 401 || response.status === 403)) {
@@ -762,7 +867,8 @@ class GitHubDashboard {
                 this.pendingRequest = async () => {
                     try {
                         const retryResponse = await fetch(url, {
-                            headers: this.getFetchHeaders()
+                            headers: this.getFetchHeaders(),
+                            cache: 'default'
                         });
 
                         if (retryResponse.ok) {
