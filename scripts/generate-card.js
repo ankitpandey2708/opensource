@@ -77,13 +77,13 @@ async function fetchGitHubStats(username) {
  */
 function generateSVG(data) {
   // Calculate circular progress for merge rate
-  const radius = 35;
+  const radius = 32;
   const circumference = 2 * Math.PI * radius;
   const mergeProgress = (parseFloat(data.mergeRate) / 100) * circumference;
   const mergeOffset = circumference - mergeProgress;
 
-  // Calculate bar widths for PR breakdown
-  const maxBarWidth = 140;
+  // Calculate bar widths for PR breakdown (shorter to fit labels)
+  const maxBarWidth = 100;
   const total = data.merged + data.open + data.discarded;
   const mergedWidth = total > 0 ? (data.merged / total) * maxBarWidth : 0;
   const openWidth = total > 0 ? (data.open / total) * maxBarWidth : 0;
@@ -191,85 +191,84 @@ function generateSVG(data) {
   </g>
 
   <!-- Left Section: Circular Progress for Merge Rate -->
-  <g transform="translate(80, 105)">
-    <!-- Background Circle -->
-    <circle cx="0" cy="0" r="${radius}" fill="none" stroke="#1e293b" stroke-width="8"/>
-
-    <!-- Progress Circle with Animation -->
-    <circle cx="0" cy="0" r="${radius}" fill="none" stroke="url(#emeraldGlow)" stroke-width="8"
+  <g transform="translate(70, 110)">
+    <circle cx="0" cy="0" r="${radius}" fill="none" stroke="#1e293b" stroke-width="7"/>
+    <circle cx="0" cy="0" r="${radius}" fill="none" stroke="url(#emeraldGlow)" stroke-width="7"
             stroke-dasharray="${circumference}" stroke-dashoffset="${mergeOffset}"
             stroke-linecap="round" transform="rotate(-90)" filter="url(#neonGlow)">
       <animate attributeName="stroke-dashoffset" from="${circumference}" to="${mergeOffset}" dur="1.5s" fill="freeze"/>
     </circle>
-
-    <!-- Center Text -->
-    <text x="0" y="-5" font-family="'Inter', sans-serif" font-size="28" font-weight="900"
+    <text x="0" y="-3" font-family="'Inter', sans-serif" font-size="24" font-weight="900"
           fill="#10b981" text-anchor="middle" filter="url(#softGlow)">
       ${data.mergeRate}%
     </text>
-    <text x="0" y="12" font-family="'Inter', sans-serif" font-size="9" fill="#64748b"
+    <text x="0" y="10" font-family="'Inter', sans-serif" font-size="8" fill="#64748b"
           text-anchor="middle" font-weight="700" letter-spacing="0.5">
       MERGE RATE
     </text>
   </g>
 
-  <!-- Right Section: Stats Display -->
-  <g transform="translate(180, 80)">
-    <!-- Total Contributions -->
-    <g>
-      <text x="0" y="0" font-family="'Inter', sans-serif" font-size="11" fill="#64748b"
-            font-weight="700" letter-spacing="1">
-        TOTAL CONTRIBUTIONS
-      </text>
-      <text x="0" y="28" font-family="'Inter', sans-serif" font-size="42" font-weight="900"
-            fill="url(#cyanGlow)" filter="url(#neonGlow)">
-        ${data.totalContributions}
+  <!-- Center: Total Contributions -->
+  <g transform="translate(150, 85)">
+    <text x="0" y="0" font-family="'Inter', sans-serif" font-size="10" fill="#64748b"
+          font-weight="700" letter-spacing="0.8">
+      TOTAL CONTRIBUTIONS
+    </text>
+    <text x="0" y="32" font-family="'Inter', sans-serif" font-size="36" font-weight="900"
+          fill="url(#cyanGlow)" filter="url(#neonGlow)">
+      ${data.totalContributions}
+    </text>
+  </g>
+
+  <!-- Right Section: PR Breakdown -->
+  <g transform="translate(285, 80)">
+    <text x="0" y="0" font-family="'Inter', sans-serif" font-size="8" fill="#64748b"
+          font-weight="700" letter-spacing="0.5">
+      PR BREAKDOWN
+    </text>
+
+    <!-- Merged -->
+    <g transform="translate(0, 15)">
+      <rect x="0" y="0" width="${maxBarWidth}" height="10" rx="5" fill="#1e293b"/>
+      <rect x="0" y="0" width="${mergedWidth}" height="10" rx="5" fill="url(#emeraldGlow)" filter="url(#softGlow)">
+        <animate attributeName="width" from="0" to="${mergedWidth}" dur="1s" fill="freeze"/>
+      </rect>
+      <text x="${maxBarWidth + 6}" y="8" font-family="'Inter', sans-serif" font-size="9"
+            fill="#10b981" font-weight="700">
+        ${data.merged}
       </text>
     </g>
 
-    <!-- PR Breakdown Bars -->
-    <g transform="translate(0, 50)">
-      <text x="0" y="0" font-family="'Inter', sans-serif" font-size="9" fill="#64748b"
-            font-weight="700" letter-spacing="0.5">
-        PR BREAKDOWN
+    <!-- Open -->
+    <g transform="translate(0, 32)">
+      <rect x="0" y="0" width="${maxBarWidth}" height="10" rx="5" fill="#1e293b"/>
+      <rect x="0" y="0" width="${openWidth}" height="10" rx="5" fill="url(#yellowGlow)" filter="url(#softGlow)">
+        <animate attributeName="width" from="0" to="${openWidth}" dur="1s" fill="freeze" begin="0.2s"/>
+      </rect>
+      <text x="${maxBarWidth + 6}" y="8" font-family="'Inter', sans-serif" font-size="9"
+            fill="#fbbf24" font-weight="700">
+        ${data.open}
       </text>
-
-      <!-- Merged Bar -->
-      <g transform="translate(0, 12)">
-        <rect x="0" y="0" width="${maxBarWidth}" height="12" rx="6" fill="#1e293b"/>
-        <rect x="0" y="0" width="${mergedWidth}" height="12" rx="6" fill="url(#emeraldGlow)" filter="url(#softGlow)">
-          <animate attributeName="width" from="0" to="${mergedWidth}" dur="1s" fill="freeze"/>
-        </rect>
-        <text x="${maxBarWidth + 8}" y="9" font-family="'Inter', sans-serif" font-size="10"
-              fill="#10b981" font-weight="700">
-          ${data.merged} Merged
-        </text>
-      </g>
-
-      <!-- Open Bar -->
-      <g transform="translate(0, 28)">
-        <rect x="0" y="0" width="${maxBarWidth}" height="12" rx="6" fill="#1e293b"/>
-        <rect x="0" y="0" width="${openWidth}" height="12" rx="6" fill="url(#yellowGlow)" filter="url(#softGlow)">
-          <animate attributeName="width" from="0" to="${openWidth}" dur="1s" fill="freeze" begin="0.2s"/>
-        </rect>
-        <text x="${maxBarWidth + 8}" y="9" font-family="'Inter', sans-serif" font-size="10"
-              fill="#fbbf24" font-weight="700">
-          ${data.open} Open
-        </text>
-      </g>
-
-      <!-- Discarded Bar -->
-      <g transform="translate(0, 44)">
-        <rect x="0" y="0" width="${maxBarWidth}" height="12" rx="6" fill="#1e293b"/>
-        <rect x="0" y="0" width="${discardedWidth}" height="12" rx="6" fill="url(#pinkGlow)" filter="url(#softGlow)">
-          <animate attributeName="width" from="0" to="${discardedWidth}" dur="1s" fill="freeze" begin="0.4s"/>
-        </rect>
-        <text x="${maxBarWidth + 8}" y="9" font-family="'Inter', sans-serif" font-size="10"
-              fill="#ec4899" font-weight="700">
-          ${data.discarded} Closed
-        </text>
-      </g>
     </g>
+
+    <!-- Closed -->
+    <g transform="translate(0, 49)">
+      <rect x="0" y="0" width="${maxBarWidth}" height="10" rx="5" fill="#1e293b"/>
+      <rect x="0" y="0" width="${discardedWidth}" height="10" rx="5" fill="url(#pinkGlow)" filter="url(#softGlow)">
+        <animate attributeName="width" from="0" to="${discardedWidth}" dur="1s" fill="freeze" begin="0.4s"/>
+      </rect>
+      <text x="${maxBarWidth + 6}" y="8" font-family="'Inter', sans-serif" font-size="9"
+            fill="#ec4899" font-weight="700">
+        ${data.discarded}
+      </text>
+    </g>
+
+    <!-- Labels -->
+    <text x="0" y="73" font-family="'Inter', sans-serif" font-size="7" fill="#64748b" font-weight="600">
+      <tspan fill="#10b981">■</tspan> Merged
+      <tspan dx="8" fill="#fbbf24">■</tspan> Open
+      <tspan dx="8" fill="#ec4899">■</tspan> Closed
+    </text>
   </g>
 
   <!-- Glowing Border -->
