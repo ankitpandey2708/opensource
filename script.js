@@ -124,7 +124,6 @@ class GitHubDashboard {
 
         // Keep only essential PR fields
         const sanitizePR = (pr) => ({
-            repository_url: pr.repository_url,
             created_at: pr.created_at,
             html_url: pr.html_url,
             number: pr.number,
@@ -680,7 +679,7 @@ class GitHubDashboard {
 
         // Group PRs by organization
         const groupedPRs = prs.reduce((groups, pr) => {
-            const orgName = pr.repository_url.split('/').slice(-2)[0];
+            const orgName = pr.html_url.split('/')[3]; // Extract org from https://github.com/org/repo/pull/123
             if (!groups[orgName]) groups[orgName] = [];
             groups[orgName].push(pr);
             return groups;
@@ -698,7 +697,7 @@ class GitHubDashboard {
         // Render organizations with 2+ PRs (with org headers)
         htmlContent += multiPROrgs.map(([orgName, orgPRs]) => {
             const itemsHTML = orgPRs.map(pr => {
-                const repoName = pr.repository_url.split('/').pop();
+                const repoName = pr.html_url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
                 const createdDate = new Date(pr.created_at).toLocaleDateString();
                 return `
                     <a href="${pr.html_url}" target="_blank" class="item-card">
@@ -733,7 +732,7 @@ class GitHubDashboard {
         if (singlePROrgs.length > 0) {
             const singlePRsHTML = singlePROrgs.map(([orgName, orgPRs]) => {
                 const pr = orgPRs[0];
-                const repoName = pr.repository_url.split('/').pop();
+                const repoName = pr.html_url.split('/')[4]; // Extract repo from https://github.com/org/repo/pull/123
                 const createdDate = new Date(pr.created_at).toLocaleDateString();
                 return `
                     <a href="${pr.html_url}" target="_blank" class="item-card">
