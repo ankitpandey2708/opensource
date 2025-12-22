@@ -97,6 +97,59 @@ class GitHubDashboard {
         this.loadUsernameFromURL();
     }
 
+    // Sanitize data before caching to reduce localStorage usage
+    sanitizeDataForCache(userData) {
+        const sanitized = {
+            profile: null,
+            reposCount: 0,
+            openPRs: [],
+            discardedPRs: [],
+            mergedPRs: []
+        };
+
+        // Keep only essential profile fields
+        if (userData.profile) {
+            sanitized.profile = {
+                login: userData.profile.login,
+                avatar_url: userData.profile.avatar_url,
+                name: userData.profile.name,
+                created_at: userData.profile.created_at,
+                location: userData.profile.location,
+                company: userData.profile.company
+            };
+        }
+
+        // Keep only repos count, not the full array
+        sanitized.reposCount = userData.repos?.length || 0;
+
+        // Keep only essential PR fields
+        const sanitizePR = (pr) => ({
+            repository_url: pr.repository_url,
+            created_at: pr.created_at,
+            html_url: pr.html_url,
+            number: pr.number,
+            title: pr.title,
+            comments: pr.comments
+        });
+
+        sanitized.openPRs = userData.openPRs?.map(sanitizePR) || [];
+        sanitized.discardedPRs = userData.discardedPRs?.map(sanitizePR) || [];
+        sanitized.mergedPRs = userData.mergedPRs?.map(sanitizePR) || [];
+
+        return sanitized;
+    }
+
+    // Restore full structure from sanitized cache
+    restoreFromCache(cachedData) {
+        this.userData = {
+            profile: cachedData.profile,
+            repos: new Array(cachedData.reposCount || 0).fill(null), // Restore as empty array with correct length
+            openPRs: cachedData.openPRs || [],
+            discardedPRs: cachedData.discardedPRs || [],
+            mergedPRs: cachedData.mergedPRs || []
+        };
+    }
+
     loadToken() {
         try {
             return localStorage.getItem('github_token') || null;
@@ -249,7 +302,7 @@ class GitHubDashboard {
         const cachedData = this.cache.get(cacheKey);
         if (cachedData) {
             console.log('Loading from cache for user:', username);
-            this.userData = cachedData.userData;
+            this.restoreFromCache(cachedData.userData);
             this.paginationState = cachedData.paginationState;
             return; // Skip API calls!
         }
@@ -274,9 +327,9 @@ class GitHubDashboard {
         // Fetch PRs (using search API)
         await this.fetchPRs(username);
 
-        // Cache the complete data after fetching
+        // Cache the complete data after fetching (sanitized to reduce size)
         this.cache.set(cacheKey, {
-            userData: this.userData,
+            userData: this.sanitizeDataForCache(this.userData),
             paginationState: this.paginationState
         });
     }
@@ -371,10 +424,10 @@ class GitHubDashboard {
 
         await this.fetchPRPage(this.currentUser, prType, stateMap[prType]);
 
-        // Update cache with new data
+        // Update cache with new data (sanitized to reduce size)
         const cacheKey = `gh_cache_${this.currentUser}`;
         this.cache.set(cacheKey, {
-            userData: this.userData,
+            userData: this.sanitizeDataForCache(this.userData),
             paginationState: this.paginationState
         });
     }
