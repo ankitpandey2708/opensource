@@ -101,7 +101,6 @@ class GitHubDashboard {
     sanitizeDataForCache(userData) {
         const sanitized = {
             profile: null,
-            reposCount: 0,
             openPRs: [],
             discardedPRs: [],
             mergedPRs: []
@@ -118,9 +117,6 @@ class GitHubDashboard {
                 company: userData.profile.company
             };
         }
-
-        // Keep only repos count, not the full array
-        sanitized.reposCount = userData.repos?.length || 0;
 
         // Keep only essential PR fields
         const sanitizePR = (pr) => ({
@@ -140,7 +136,7 @@ class GitHubDashboard {
     restoreFromCache(cachedData) {
         this.userData = {
             profile: cachedData.profile,
-            repos: new Array(cachedData.reposCount || 0).fill(null), // Restore as empty array with correct length
+            repos: [], // Empty array when loading from cache
             openPRs: cachedData.openPRs || [],
             discardedPRs: cachedData.discardedPRs || [],
             mergedPRs: cachedData.mergedPRs || []
@@ -544,10 +540,9 @@ class GitHubDashboard {
         const totalPRs = openTotal + discardedTotal + mergedTotal;
 
         const mergeRate = totalPRs > 0 ? ((mergedTotal / totalPRs) * 100).toFixed(1) : 0;
-        const repoCount = this.userData.repos.length;
 
         // Toggle section visibility
-        const showEncouragement = totalPRs === 0 || repoCount === 0;
+        const showEncouragement = totalPRs === 0;
         this.toggleElement('encouragementSection', showEncouragement);
         this.toggleElement('prsSection', totalPRs > 0);
 
