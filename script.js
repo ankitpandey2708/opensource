@@ -155,6 +155,23 @@ class GitHubDashboard {
             discardedPRs: cachedData.discardedPRs || [],
             mergedPRs: cachedData.mergedPRs || []
         };
+
+        this.syncPaginationStateFromCache();
+    }
+
+    syncPaginationStateFromCache() {
+        Object.keys(this.paginationState).forEach(prType => {
+            const cachedItems = this.userData[prType] || [];
+            const pagesLoaded = Math.floor(cachedItems.length / this.ITEMS_PER_PAGE);
+            const hasFullPage = cachedItems.length === 0 || cachedItems.length % this.ITEMS_PER_PAGE === 0;
+
+            this.paginationState[prType] = {
+                page: pagesLoaded + 1,
+                hasMore: hasFullPage,
+                loading: false,
+                totalCount: 0
+            };
+        });
     }
 
     // URL parsing helper methods
@@ -394,12 +411,14 @@ class GitHubDashboard {
             if (response.ok) {
                 const data = await response.json();
                 const newItems = data.items || [];
+                const existingUrls = new Set(this.userData[prType].map(pr => pr.html_url));
+                const uniqueNewItems = newItems.filter(pr => !existingUrls.has(pr.html_url));
 
                 // Update total count
                 paginationState.totalCount = data.total_count || 0;
 
                 // Append new items to existing data
-                this.userData[prType] = [...this.userData[prType], ...newItems];
+                this.userData[prType] = [...this.userData[prType], ...uniqueNewItems];
 
                 // Check if there are more pages
                 // GitHub Search API caps at 1000 results (10 pages)
