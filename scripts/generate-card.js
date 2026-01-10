@@ -1,7 +1,9 @@
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 
-const USERNAME = process.env.USERNAME || 'ankitpandey2708';
+const OUTPUT_PATH = process.env.OUTPUT_PATH || 'insights-card.svg';
+const USERNAME_RAW = process.env.USERNAME || 'ankitpandey2708';
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
 /**
@@ -122,15 +124,71 @@ function generateSVG(data) {
 /**
  * Main execution
  */
+function readUsernames() {
+  const normalized = USERNAME_RAW
+    .split(',')
+    .map((username) => username.trim())
+    .filter(Boolean);
+
+  return [...new Set(normalized)];
+}
+
+function getPrimaryUsername() {
+  return readUsernames()[0] || 'ankitpandey2708';
+}
+
+function ensureDirectory(filePath) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+}
+
+async function writeCard(username, outputPath) {
+  const stats = await fetchGitHubStats(username);
+  const svg = generateSVG(stats);
+
+  ensureDirectory(outputPath);
+  fs.writeFileSync(outputPath, svg, 'utf8');
+  console.log(`✅ Wrote ${outputPath}`);
+}
+
+async function writeSingleCard() {
+  const stats = await fetchGitHubStats(getPrimaryUsername());
+  const svg = generateSVG(stats);
+
+  ensureDirectory(OUTPUT_PATH);
+  fs.writeFileSync(OUTPUT_PATH, svg, 'utf8');
+  console.log(`\n✅ SVG card generated successfully: ${OUTPUT_PATH}`);
+  console.log(`   Total Contributions: ${stats.totalContributions}`);
+  console.log(`   Merge Rate: ${stats.mergeRate}%`);
+}
+
+async function writeBatchCards() {
+  const usernames = readUsernames();
+  const defaultUsername = usernames[0] || USERNAME_RAW;
+  const rootUsername = 'ankitpandey2708';
+
+  if (usernames.length <= 1) {
+    throw new Error('Provide multiple comma-separated USERNAME values to generate batch cards.');
+  }
+
+  for (const username of usernames) {
+    if (username === rootUsername) {
+      continue;
+    }
+    const outputPath = path.join(__dirname, '..', username, 'insights-card.svg');
+    await writeCard(username, outputPath);
+  }
+
+  await writeCard(defaultUsername, path.join(__dirname, '..', 'insights-card.svg'));
+}
+
 async function main() {
   try {
-    const stats = await fetchGitHubStats(USERNAME);
-    const svg = generateSVG(stats);
+    if (readUsernames().length > 1) {
+      await writeBatchCards();
+      return;
+    }
 
-    fs.writeFileSync('insights-card.svg', svg, 'utf8');
-    console.log('\n✅ SVG card generated successfully: insights-card.svg');
-    console.log(`   Total Contributions: ${stats.totalContributions}`);
-    console.log(`   Merge Rate: ${stats.mergeRate}%`);
+    await writeSingleCard();
   } catch (error) {
     console.error('❌ Error generating card:', error.message);
     process.exit(1);

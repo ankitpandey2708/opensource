@@ -7,6 +7,11 @@ on:
 
   # Allow manual trigger
   workflow_dispatch:
+    inputs:
+      username:
+        description: 'GitHub username or comma-separated usernames for batch cards'
+        required: false
+        default: 'ankitpandey2708'
 
   # Run on push to main branch
   push:
@@ -34,7 +39,7 @@ jobs:
       - name: Generate SVG Card
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USERNAME: ankitpandey2708
+          USERNAME: ${{ inputs.username || 'ankitpandey2708' }}
         run: node scripts/generate-card.js
 
       - name: Commit and push if changed
@@ -42,4 +47,5 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add insights-card.svg
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🎨 Update insights card" && git push)
+          git add */insights-card.svg 2>/dev/null || true
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🎨 Update insights cards" && git push)
