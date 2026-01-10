@@ -2,11 +2,11 @@
 
 # ForkLift
 
-Track your open source contributions across GitHub.
+Track your PR contributions across GitHub.
 
 ## 📊 Embed Your Stats
 
-Show off your contributions with a beautiful SVG card:
+Show off your PR contributions with a beautiful SVG card:
 
 ```html
 <img align="center" src="https://ankitpandey2708.github.io/opensource/insights-card.svg" alt="ForkLift Stats" />
