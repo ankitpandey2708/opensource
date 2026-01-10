@@ -1,158 +1,39 @@
-<svg width="450" height="195" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="descId">
+<svg width="450" height="195" viewBox="0 0 450 195" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="descId">
   <title id="titleId">ForkLift Insights for ankitpandey2708</title>
   <desc id="descId">Open source contribution statistics showing 32 total contributions with 50.0% merge rate</desc>
 
-  <defs>
-    <!-- Gradient Definitions -->
-    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#0f172a;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#1e293b;stop-opacity:1" />
-    </linearGradient>
+  <rect width="450" height="195" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
 
-    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#8b5cf6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
-    </linearGradient>
+  <text x="24" y="30" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="18" font-weight="700" fill="#0f172a">
+    ForkLift Insights
+  </text>
+  <text x="24" y="48" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="12" fill="#64748b">
+    @ankitpandey2708
+  </text>
 
-    <linearGradient id="cardGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:0.3" />
-      <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.1" />
-    </linearGradient>
+  <line x1="20" y1="60" x2="430" y2="60" stroke="#e2e8f0" stroke-width="1"/>
 
-    <linearGradient id="cardGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#065f46;stop-opacity:0.3" />
-      <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.1" />
-    </linearGradient>
+  <g font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#0f172a">
+    <text x="24" y="82" font-weight="600">Total contributions</text>
+    <text x="426" y="82" text-anchor="end" font-weight="700">32</text>
 
-    <!-- Shadow Filter -->
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-      <feOffset dx="0" dy="2" result="offsetblur"/>
-      <feComponentTransfer>
-        <feFuncA type="linear" slope="0.3"/>
-      </feComponentTransfer>
-      <feMerge>
-        <feMergeNode/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <text x="24" y="104" font-weight="600">Merged PRs</text>
+    <text x="426" y="104" text-anchor="end" font-weight="700">16</text>
 
-    <!-- Glow Effect -->
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
+    <text x="24" y="126" font-weight="600">Open PRs</text>
+    <text x="426" y="126" text-anchor="end" font-weight="700">1</text>
 
-  <!-- Main Background -->
-  <rect width="450" height="195" rx="12" fill="url(#backgroundGradient)"/>
+    <text x="24" y="148" font-weight="600">Discarded PRs</text>
+    <text x="426" y="148" text-anchor="end" font-weight="700">15</text>
 
-  <!-- Decorative Border with Gradient -->
-  <rect x="2" y="2" width="446" height="191" rx="10" fill="none" stroke="url(#accentGradient)" stroke-width="2" opacity="0.6"/>
-
-  <!-- Decorative Top Accent Bar -->
-  <rect x="0" y="0" width="450" height="4" rx="12" fill="url(#accentGradient)" opacity="0.8"/>
-
-  <!-- Header Section -->
-  <g>
-    <!-- Icon Circle Background -->
-    <circle cx="30" cy="30" r="14" fill="url(#accentGradient)" opacity="0.2"/>
-    <circle cx="30" cy="30" r="12" fill="none" stroke="url(#accentGradient)" stroke-width="2"/>
-
-    <!-- Rocket Icon -->
-    <text x="30" y="36" font-size="16" text-anchor="middle">🚀</text>
-
-    <!-- Title -->
-    <text x="52" y="28" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          font-size="18" font-weight="700" fill="#ffffff" letter-spacing="0.5">
-      ForkLift Insights
-    </text>
-
-    <!-- Username -->
-    <text x="52" y="42" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          font-size="13" fill="#94a3b8" font-weight="500">
-      @ankitpandey2708
-    </text>
+    <text x="24" y="170" font-weight="600">Merge rate</text>
+    <text x="426" y="170" text-anchor="end" font-weight="700">50.0%</text>
   </g>
 
-  <!-- Divider Line -->
-  <line x1="20" y1="60" x2="430" y2="60" stroke="url(#accentGradient)" stroke-width="1" opacity="0.3"/>
-
-  <!-- Stats Cards Container -->
-  <g transform="translate(25, 80)">
-    <!-- Total Contributions Card -->
-    <g filter="url(#shadow)">
-      <rect width="190" height="85" rx="10" fill="#1e293b"/>
-      <rect width="190" height="85" rx="10" fill="url(#cardGradient1)"/>
-      <rect x="1" y="1" width="188" height="83" rx="9" fill="none" stroke="#6366f1" stroke-width="1" opacity="0.3"/>
-
-      <!-- Icon Background -->
-      <circle cx="25" cy="25" r="12" fill="#6366f1" opacity="0.2"/>
-
-      <!-- Chart Icon -->
-      <text x="25" y="31" font-size="14" text-anchor="middle">📊</text>
-
-      <!-- Label -->
-      <text x="45" y="22" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="11" fill="#94a3b8" font-weight="600" letter-spacing="0.5">
-        TOTAL CONTRIBUTIONS
-      </text>
-
-      <!-- Value -->
-      <text x="45" y="45" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="32" font-weight="800" fill="#6366f1" filter="url(#glow)">
-        32
-      </text>
-
-      <!-- Sub Stats -->
-      <text x="45" y="65" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="9" fill="#64748b" font-weight="500">
-        <tspan fill="#10b981">●</tspan> 16 merged
-        <tspan dx="3" fill="#f59e0b">●</tspan> 1 open
-      </text>
-    </g>
-
-    <!-- Merge Rate Card -->
-    <g transform="translate(210, 0)" filter="url(#shadow)">
-      <rect width="190" height="85" rx="10" fill="#1e293b"/>
-      <rect width="190" height="85" rx="10" fill="url(#cardGradient2)"/>
-      <rect x="1" y="1" width="188" height="83" rx="9" fill="none" stroke="#10b981" stroke-width="1" opacity="0.3"/>
-
-      <!-- Icon Background -->
-      <circle cx="25" cy="25" r="12" fill="#10b981" opacity="0.2"/>
-
-      <!-- Target Icon -->
-      <text x="25" y="31" font-size="14" text-anchor="middle">🎯</text>
-
-      <!-- Label -->
-      <text x="45" y="22" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="11" fill="#94a3b8" font-weight="600" letter-spacing="0.5">
-        MERGE RATE
-      </text>
-
-      <!-- Value -->
-      <text x="45" y="45" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="32" font-weight="800" fill="#10b981" filter="url(#glow)">
-        50.0%
-      </text>
-
-      <!-- Sub Stats -->
-      <text x="45" y="65" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-            font-size="9" fill="#64748b" font-weight="500">
-        <tspan fill="#ef4444">●</tspan> 15 discarded
-      </text>
-    </g>
-  </g>
-
-  <!-- Footer -->
-  <g transform="translate(225, 183)">
-    <text font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-          font-size="9" fill="#475569" text-anchor="middle" font-weight="500" letter-spacing="0.3">
-      Powered by ForkLift · Updated Jan 10, 2026
-    </text>
-  </g>
+  <text x="225" y="188" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="9" fill="#94a3b8" text-anchor="middle">
+    Updated Jan 10, 2026
+  </text>
 </svg>
