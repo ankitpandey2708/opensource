@@ -3,7 +3,7 @@ name: Generate SVG Insights Card
 on:
   # Run every 6 hours
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 0 1 * *'
   # Allow manual trigger
   workflow_dispatch:
     inputs:
