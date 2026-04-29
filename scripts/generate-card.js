@@ -79,14 +79,14 @@ async function fetchGitHubStats(username) {
  */
 function generateSVG(data) {
   const svg = `<svg width="450" height="195" viewBox="0 0 450 195" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="descId">
-  <title id="titleId">ForkLift Insights for ${data.username}</title>
+  <title id="titleId">OSS Contributions for ${data.username}</title>
   <desc id="descId">Open source contribution statistics showing ${data.totalContributions} total contributions with ${data.mergeRate}% merge rate</desc>
 
   <rect width="450" height="195" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
 
   <text x="24" y="30" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
         font-size="18" font-weight="700" fill="#0f172a">
-    ForkLift Insights
+    OSS Contributions
   </text>
   <text x="24" y="48" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
         font-size="12" fill="#64748b">
@@ -96,9 +96,7 @@ function generateSVG(data) {
   <line x1="20" y1="60" x2="430" y2="60" stroke="#e2e8f0" stroke-width="1"/>
 
   <g font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#0f172a">
-    <text x="24" y="82" font-weight="600">Total contributions</text>
-    <text x="426" y="82" text-anchor="end" font-weight="700">${data.totalContributions}</text>
-
+    
     <text x="24" y="104" font-weight="600">Merged PRs</text>
     <text x="426" y="104" text-anchor="end" font-weight="700">${data.merged}</text>
 
