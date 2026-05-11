@@ -82,7 +82,7 @@ function generateSVG(data) {
   <title id="titleId">OSS Contributions for ${data.username}</title>
   <desc id="descId">Open source contribution statistics showing ${data.totalContributions} total contributions with ${data.mergeRate}% merge rate</desc>
 
-  <rect width="450" height="195" rx="12" fill="#000000" stroke="#2d3748" stroke-width="1"/>
+  <rect width="450" height="195" fill="#000000" stroke="#2d3748" stroke-width="1"/>
 
   <text x="24" y="30" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
         font-size="18" font-weight="700" fill="#ffffff">
