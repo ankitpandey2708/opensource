@@ -82,21 +82,21 @@ function generateSVG(data) {
   <title id="titleId">OSS Contributions for ${data.username}</title>
   <desc id="descId">Open source contribution statistics showing ${data.totalContributions} total contributions with ${data.mergeRate}% merge rate</desc>
 
-  <rect width="450" height="195" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+  <rect width="450" height="195" rx="12" fill="#000000" stroke="#2d3748" stroke-width="1"/>
 
   <text x="24" y="30" font-family="'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size="18" font-weight="700" fill="#0f172a">
+        font-size="18" font-weight="700" fill="#ffffff">
     OSS Contributions
   </text>
   <text x="24" y="48" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size="12" fill="#64748b">
+        font-size="12" fill="#94a3b8">
     @${data.username}
   </text>
 
-  <line x1="20" y1="60" x2="430" y2="60" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="20" y1="60" x2="430" y2="60" stroke="#2d3748" stroke-width="1"/>
 
-  <g font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#0f172a">
-    
+  <g font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#ffffff">
+
     <text x="24" y="104" font-weight="600">Merged PRs</text>
     <text x="426" y="104" text-anchor="end" font-weight="700">${data.merged}</text>
 
@@ -111,7 +111,7 @@ function generateSVG(data) {
   </g>
 
   <text x="225" y="188" font-family="'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-        font-size="9" fill="#94a3b8" text-anchor="middle">
+        font-size="9" fill="#4a5568" text-anchor="middle">
     Updated ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
   </text>
 </svg>`;
